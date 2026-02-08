@@ -1,7 +1,7 @@
 /* ---- Load pages for preview vs full ---- */
 const params = new URLSearchParams(window.location.search);
 
-const ACCESS_TOKEN = "YOURTOKEN";           // set this
+const ACCESS_TOKEN = "123TTR";           // <-- CHANGE THIS
 const isUnlocked = params.get("access") === ACCESS_TOKEN;
 
 const mode = params.get("mode") || "full";  // preview or full
