@@ -1,23 +1,33 @@
-const book = document.getElementById('book');
+/* ---- Load pages for preview vs full ---- */
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode") || "full"; // preview or full
 
+const pageFiles =
+  mode === "preview"
+    ? ["pages/page1.html", "pages/page2.html", "pages/page3.html"]
+    : [
+        "pages/page1.html",
+        "pages/page2.html",
+        "pages/page3.html",
+        "pages/page4.html",
+        "pages/page5.html",
+        // add all pages here
+      ];
 
-fetch('pages/page1.html').then(r => r.text()).then(p1 => {
-fetch('pages/page2.html').then(r => r.text()).then(p2 => {
-fetch('pages/page3.html').then(r => r.text()).then(p3 => {
+async function loadPages() {
+  const book = document.getElementById("book");
+  const html = await Promise.all(pageFiles.map((p) => fetch(p).then((r) => r.text())));
+  book.innerHTML = html.join("\n");
 
+  /* ---- Initialize flipbook ---- */
+  const pageFlip = new St.PageFlip(book, {
+    width: 360,
+    height: 640,
+    size: "stretch",
+    showCover: true,
+  });
 
-book.innerHTML = p1 + p2 + p3;
+  pageFlip.loadFromHTML(document.querySelectorAll(".page"));
+}
 
-
-const pageFlip = new St.PageFlip(book, {
-width: 360,
-height: 640,
-size: 'stretch',
-showCover: true
-});
-
-
-pageFlip.loadFromHTML(document.querySelectorAll('.page'));
-
-
-});});});
+loadPages();
