@@ -1,2 +1,2 @@
-# embodied-logic
+# embody-logic
 Webapp Course
