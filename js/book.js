@@ -1,18 +1,24 @@
 /* ---- Load pages for preview vs full ---- */
 const params = new URLSearchParams(window.location.search);
-const mode = params.get("mode") || "full"; // preview or full
 
-const pageFiles =
-  mode === "preview"
-    ? ["pages/page1.html", "pages/page2.html", "pages/page3.html"]
-    : [
-        "pages/page1.html",
-        "pages/page2.html",
-        "pages/page3.html",
-        "pages/page4.html",
-        "pages/page5.html",
-        // add all pages here
-      ];
+const ACCESS_TOKEN = "YOURTOKEN";           // set this
+const isUnlocked = params.get("access") === ACCESS_TOKEN;
+
+const mode = params.get("mode") || "full";  // preview or full
+const shouldShowFull = isUnlocked && mode === "full";
+
+/* ---- Choose files ---- */
+const previewFiles = ["files/a1.html", "files/a2.html", "files/a3.html"];
+const fullFiles = [
+  "files/a1.html",
+  "files/a2.html",
+  "files/a3.html",
+  "files/a4.html",
+  "files/a5.html",
+  // add all pages here
+];
+
+const pageFiles = shouldShowFull ? fullFiles : previewFiles;
 
 async function loadPages() {
   const book = document.getElementById("book");
