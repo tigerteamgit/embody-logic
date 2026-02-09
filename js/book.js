@@ -15,7 +15,7 @@ const pageFiles =
 
 async function loadPages() {
   try {
-    const book = document.getElementById("book");
+    const bookEl = document.getElementById("book");
 
     const html = await Promise.all(
       pageFiles.map(async (p) => {
@@ -27,10 +27,10 @@ async function loadPages() {
       })
     );
 
-    book.innerHTML = html.join("\n");
+    bookEl.innerHTML = html.join("\n");
 
     /* ---- Initialize flipbook ---- */
-    const pageFlip = new St.PageFlip(book, {
+    const pageFlip = new St.PageFlip(bookEl, {
       width: 360,
       height: 640,
       size: "stretch",
@@ -43,8 +43,11 @@ async function loadPages() {
     pageFlip.loadFromHTML(pages);
   } catch (err) {
     console.error("Book load failed:", err);
-    document.getElementById("book").innerHTML =
-      `<div class="page"><h2>Error loading book</h2><pre>${String(err)}</pre></div>`;
+    const bookEl = document.getElementById("book");
+    if (bookEl) {
+      bookEl.innerHTML =
+        `<div class="page"><h2>Error loading book</h2><pre>${String(err)}</pre></div>`;
+    }
   }
 }
 
