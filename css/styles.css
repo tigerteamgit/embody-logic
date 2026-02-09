@@ -4,12 +4,16 @@ body {
   margin: 0;
   font-family: system-ui, sans-serif;
   background: #f4f4f4;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #book {
   width: 800px;              /* book width */
   height: 600px;             /* book height */
-  margin: 60px auto;         /* center horizontally */
+  /*margin: 60px auto;         center horizontally */
 }
 
 /* ---- Page Styling ---- */
@@ -19,15 +23,16 @@ body {
   padding: 40px;
   box-sizing: border-box;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  /*box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);*/
 }
 
 .page h2 {
   margin-top: 0;
 }
 
+/*
 .page img {
   max-width: 100%;
   height: auto;
   margin-top: 20px;
-}
+}*/
