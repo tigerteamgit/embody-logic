@@ -2,6 +2,9 @@
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") || "full"; // preview or full
 
+console.log("St:", window.St);
+console.log("St.PageFlip:", window.St?.PageFlip);
+
 const pageFiles =
   mode === "preview"
     ? ["files/a1.html", "files/a2.html"] // preview pages only
