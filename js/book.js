@@ -1,58 +1,28 @@
-/* ---- Load pages for preview vs full ---- */
+/* ---- Blog reader: preview vs full ---- */
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") || "full"; // preview or full
 
-console.log("St:", window.St);
-console.log("St.PageFlip:", window.St?.PageFlip);
+// Load 1 file for preview, 1 file for full (simple + reliable)
+const file = mode === "preview" ? "files/preview.html" : "files/full.html";
 
-const pageFiles =
-  mode === "preview"
-    ? ["files/a1.html", "files/a2.html"] // preview pages only
-    : [
-        "files/a1.html",
-        "files/a2.html",
-        // add all full pages here, e.g.
-        // "files/a3.html",
-        // "files/a4.html",
-      ];
+async function loadContent() {
+  const el = document.getElementById("content");
 
-async function loadPages() {
   try {
-    const bookEl = document.getElementById("book");
+    console.log("Loading:", file);
 
-    const html = await Promise.all(
-      pageFiles.map(async (p) => {
-        console.log("Fetching:", p);
-        const res = await fetch(p, { cache: "no-store" });
-        console.log("Result:", p, res.status);
-        if (!res.ok) throw new Error(`${p} -> HTTP ${res.status}`);
-        return res.text();
-      })
-    );
+    const res = await fetch(file, { cache: "no-store" });
+    console.log("Result:", file, res.status);
 
-    bookEl.innerHTML = html.join("\n");
+    if (!res.ok) throw new Error(`${file} -> HTTP ${res.status}`);
 
-    /* ---- Initialize flipbook ---- */
-    const pageFlip = new St.PageFlip(bookEl, {
-      width: 400,
-      height: 600,
-      size: "fixed",
-      showCover: true,
-      usePortrait: false
-    });
-
-    const pages = document.querySelectorAll(".page");
-    console.log("Pages found:", pages.length);
-
-    pageFlip.loadFromHTML(pages);
+    el.innerHTML = await res.text();
   } catch (err) {
-    console.error("Book load failed:", err);
-    const bookEl = document.getElementById("book");
-    if (bookEl) {
-      bookEl.innerHTML =
-        `<div class="page"><h2>Error loading book</h2><pre>${String(err)}</pre></div>`;
+    console.error("Content load failed:", err);
+    if (el) {
+      el.innerHTML = `<h2>Error loading content</h2><pre>${String(err)}</pre>`;
     }
   }
 }
 
-loadPages();
+loadContent();
