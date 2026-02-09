@@ -34,10 +34,11 @@ async function loadPages() {
 
     /* ---- Initialize flipbook ---- */
     const pageFlip = new St.PageFlip(bookEl, {
-      width: 360,
-      height: 640,
-      size: "stretch",
+      width: 400,
+      height: 600,
+      size: "fixed",
       showCover: true,
+      usePortrait: false
     });
 
     const pages = document.querySelectorAll(".page");
