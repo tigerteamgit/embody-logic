@@ -1,43 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Embodied Logic</title>
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="manifest" href="manifest.json" />
-</head>
-<body>
-  <header class="header">Embodied Logic</header>
+body {
+margin: 0;
+font-family: system-ui, sans-serif;
+background: #f9f9f9;
+}
 
-  <main class="container">
-    <h1>Welcome</h1>
-    <p>An interactive embodied learning experience.</p>
 
-    <!-- Preview always available -->
-    <section class="card">
-      <h2>Preview</h2>
-      <p>You can explore a few pages before buying.</p>
-      <a class="button" href="book.html?mode=preview">Open Preview</a>
-    </section>
+.header {
+padding: 16px;
+background: black;
+color: white;
+text-align: center;
+}
 
-    <!-- Purchase CTA -->
-    <section class="card">
-      <h2>Get Full Access</h2>
-      <p>Purchase to receive your private access link instantly.</p>
-      <a class="button primary" id="buyBtn" href="https://YOURNAME.gumroad.com/l/embodiedlogic">
-        Buy on Gumroad
-      </a>
-    </section>
 
-    <!-- Full access button (hidden unless token is valid) -->
-    <section class="card" id="fullAccessCard" style="display:none;">
-      <h2>Full Access</h2>
-      <p>You’re unlocked.</p>
-      <a class="button" href="book.html">Open the Full Book</a>
-    </section>
-  </main>
+.container {
+padding: 24px;
+}
 
-  <script src="js/app.js"></script>
-</body>
-</html>
+
+.button {
+display: inline-block;
+padding: 14px 20px;
+background: black;
+color: white;
+text-decoration: none;
+border-radius: 8px;
+}
+
+
+.book {
+width: 100vw;
+height: 100vh;
+}
+
+
+.page {
+background: white;
+padding: 20px;
+}
