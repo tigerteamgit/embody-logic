@@ -1,40 +1,33 @@
+/* ---- Book Container ---- */
+
 body {
-margin: 0;
-font-family: system-ui, sans-serif;
-background: #f9f9f9;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f4f4f4;
 }
 
-
-.header {
-padding: 16px;
-background: black;
-color: white;
-text-align: center;
+#book {
+  width: 800px;              /* book width */
+  height: 600px;             /* book height */
+  margin: 60px auto;         /* center horizontally */
 }
 
-
-.container {
-padding: 24px;
-}
-
-
-.button {
-display: inline-block;
-padding: 14px 20px;
-background: black;
-color: white;
-text-decoration: none;
-border-radius: 8px;
-}
-
-
-.book {
-width: 100vw;
-height: 100vh;
-}
-
+/* ---- Page Styling ---- */
 
 .page {
-background: white;
-padding: 20px;
+  background: white;
+  padding: 40px;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.page h2 {
+  margin-top: 0;
+}
+
+.page img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 20px;
 }
