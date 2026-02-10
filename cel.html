@@ -8,7 +8,7 @@
     /* ---- Base ---- */
     :root{
       --bg:#0b0b0b;
-      --paper:#ffffff;`
+      --paper:#ffffff;
       --ink:#111;
       --muted:#666;
       --line:#eaeaea;
@@ -181,7 +181,7 @@
   <div class="card" id="introCard">
     <h1>Baseline + Post Course Assessment</h1>
     <p class="muted">
-      This is a timed creativity + cognition experiment. You’ll take it twice:
+      This is a timed creativity + cognition experiment + a simple somatic expansion check. You’ll take it twice:
       once at the start (Baseline) and once at the end (Post). Your results stay on your device and can be exported as CSV.
     </p>
 
@@ -224,10 +224,10 @@
 
   <div class="card" id="resultsCard" style="display:none;">
     <h2>Results</h2>
-    <p class="muted">Creative Expansion Index (0–100) + dimension scores (0–20). Stored locally.</p>
+    <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
 
     <div class="kpi" style="margin-top:12px;">
-      <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index</div></div>
+      <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
       <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
       <div class="box"><div class="n" id="flexN">—</div><div class="t">Flexibility</div></div>
       <div class="box"><div class="n" id="assocN">—</div><div class="t">Associative Strength</div></div>
@@ -240,6 +240,14 @@
       <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Round 1)</div></div>
       <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Round 1)</div></div>
       <div class="box"><div class="n" id="timeN">—</div><div class="t">Active Time</div></div>
+    </div>
+
+    <div class="kpi" style="margin-top:10px;">
+      <div class="box"><div class="n" id="seiN">—</div><div class="t">Somatic Expansion Index (0–100)</div></div>
+      <div class="box"><div class="n" id="eesN">—</div><div class="t">Embodied Expansion Score</div></div>
+      <div class="box"><div class="n" id="gapN">—</div><div class="t">Integration Gap (lower is better)</div></div>
+      <div class="box"><div class="n" id="rangeN">—</div><div class="t">Range (0–20)</div></div>
+      <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
     </div>
 
     <div class="hr"></div>
@@ -261,38 +269,41 @@ const STORAGE_KEY = "cel_attempts_v1";
 const ROUNDS = [
   {
     id: "divergence",
-    title: "Round 1 — Divergence Sprint",
-    desc: "5 minutes. List as many uses as possible for each item. Speed > polish.",
+    title: "Round 1 — Divergence Sprint (Raw Range)",
+    desc: "5 minutes. List uses / meanings / metaphors. Speed > polish.",
     timedSeconds: 5 * 60,
     render: (state) => {
       return `
         <div class="notice"><strong>Rules:</strong> One idea per line. Don’t censor. Keep moving.</div>
-        <label>Brick — uses (one per line)</label>
-        <textarea id="r1_brick" placeholder="e.g., doorstop, sculpture, workout weight...">${escapeHtml(state.r1_brick || "")}</textarea>
 
-        <label>Spoon — uses (one per line)</label>
-        <textarea id="r1_spoon" placeholder="e.g., instrument, catapult, measuring tool...">${escapeHtml(state.r1_spoon || "")}</textarea>
+        <label>Water — uses / meanings (one per line)</label>
+        <textarea id="r1_water" placeholder="e.g., currency, memory, cooling system, ritual...">${escapeHtml(state.r1_water || "")}</textarea>
 
-        <label>Shadow — uses (one per line)</label>
-        <textarea id="r1_shadow" placeholder="e.g., sundial, camouflage, storytelling...">${escapeHtml(state.r1_shadow || "")}</textarea>
+        <label>Rock — uses / meanings (one per line)</label>
+        <textarea id="r1_rock" placeholder="e.g., foundation, percussion, obstacle, signal...">${escapeHtml(state.r1_rock || "")}</textarea>
+
+        <label>Light — uses / meanings (one per line)</label>
+        <textarea id="r1_light" placeholder="e.g., navigation, truth, growth cue, encryption...">${escapeHtml(state.r1_light || "")}</textarea>
 
         <div class="row">
           <div>
             <label>Category count (0–10+) (how many distinct buckets you hit)</label>
-            <input id="r1_categories" type="number" min="0" max="20" value="${state.r1_categories ?? ""}" placeholder="e.g., 6" />
-            <div class="muted" style="font-size:12px;margin-top:6px;">Examples: tool, art, survival, metaphor, sport, social, architecture, emotion…</div>
+            <input id="r1_categories" type="number" min="0" max="20" value="${state.r1_categories ?? ""}" placeholder="e.g., 8" />
+            <div class="muted" style="font-size:12px;margin-top:6px;">
+              Examples: physical, emotional, scientific, cultural, symbolic, functional, narrative, systemic, philosophical…
+            </div>
           </div>
           <div>
             <label>Most unusual idea (copy/paste one line)</label>
-            <input id="r1_unusual" type="text" value="${escapeHtml(state.r1_unusual || "")}" placeholder="e.g., Shadow as 'portable privacy room'"/>
+            <input id="r1_unusual" type="text" value="${escapeHtml(state.r1_unusual || "")}" placeholder="e.g., Light as 'error-correcting code'"/>
           </div>
         </div>
       `;
     },
     collect: (state) => {
-      state.r1_brick = val("r1_brick");
-      state.r1_spoon = val("r1_spoon");
-      state.r1_shadow = val("r1_shadow");
+      state.r1_water = val("r1_water");
+      state.r1_rock = val("r1_rock");
+      state.r1_light = val("r1_light");
       state.r1_categories = num("r1_categories");
       state.r1_unusual = val("r1_unusual");
     }
@@ -300,11 +311,11 @@ const ROUNDS = [
   {
     id: "forced_connection",
     title: "Round 2 — Forced Connection Engine",
-    desc: "Connect three unrelated words into a coherent idea. Then score it with the rubric.",
+    desc: "Connect three words into one idea. Then score it with the rubric.",
     timedSeconds: 5 * 60,
     render: (state) => {
       return `
-        <div class="notice"><strong>Your words:</strong> Glacier • Radio • Garden</div>
+        <div class="notice"><strong>Your words:</strong> Ocean • Clock • Thread</div>
         <label>Write a paragraph connecting all three</label>
         <textarea id="r2_text" placeholder="Write 6–10 lines...">${escapeHtml(state.r2_text || "")}</textarea>
 
@@ -381,7 +392,7 @@ const ROUNDS = [
     timedSeconds: 4 * 60,
     render: (state) => {
       return `
-        <div class="notice"><strong>Prompt:</strong> A door appears in the middle of a forest. What is it for?</div>
+        <div class="notice"><strong>Prompt:</strong> Gravity is half as strong tomorrow. What changes, and what new industries appear?</div>
         <label>Your response</label>
         <textarea id="r4_text" placeholder="Write freely...">${escapeHtml(state.r4_text || "")}</textarea>
 
@@ -456,6 +467,63 @@ const ROUNDS = [
       state.r5_clarity = num("r5_clarity");
       state.r5_originality = num("r5_originality");
       state.r5_depth = num("r5_depth");
+    }
+  },
+  {
+    id: "somatic",
+    title: "Round 6 — Somatic Expansion Lab",
+    desc: "No equipment. Self-timed. Enter results. Same protocol for Baseline + Post.",
+    timedSeconds: 0,
+    render: (state) => {
+      return `
+        <div class="notice">
+          <strong>Instructions:</strong> Do each test safely. Use a phone timer if needed. Enter honest results.
+        </div>
+
+        <h3 style="margin-top:10px;">Test 1 — Forward Fold Reach (0–20)</h3>
+        <label>Select your best match</label>
+        <select id="s1_fold">
+          <option value="">Select…</option>
+          <option value="0"  ${state.s1_fold==0  ? "selected":""}>0 — Hands above knees</option>
+          <option value="5"  ${state.s1_fold==5  ? "selected":""}>5 — Fingertips to shins</option>
+          <option value="10" ${state.s1_fold==10 ? "selected":""}>10 — Fingertips to ankles</option>
+          <option value="15" ${state.s1_fold==15 ? "selected":""}>15 — Touch toes</option>
+          <option value="20" ${state.s1_fold==20 ? "selected":""}>20 — Palms flat on floor</option>
+        </select>
+
+        <div class="hr"></div>
+
+        <h3>Test 2 — Cross-Body Coordination (30 sec)</h3>
+        <p class="muted">Opposite elbow to knee, alternating, for 30 seconds. Count smooth reps.</p>
+        <label>Reps in 30 seconds</label>
+        <input id="s2_reps" type="number" min="0" max="200" value="${state.s2_reps ?? ""}" placeholder="e.g., 18" />
+
+        <div class="hr"></div>
+
+        <h3>Test 3 — Balance (Eyes closed)</h3>
+        <p class="muted">Single leg, eyes closed. Time until you step/wobble out.</p>
+        <label>Seconds held</label>
+        <input id="s3_balance_sec" type="number" min="0" max="300" value="${state.s3_balance_sec ?? ""}" placeholder="e.g., 12" />
+
+        <div class="hr"></div>
+
+        <h3>Test 4 — Recovery (15 squats)</h3>
+        <p class="muted">Do 15 bodyweight squats. Time until your breathing feels calm again.</p>
+        <label>Seconds to calm breathing</label>
+        <input id="s4_recovery_sec" type="number" min="0" max="600" value="${state.s4_recovery_sec ?? ""}" placeholder="e.g., 55" />
+
+        <p class="muted" style="font-size:12px; margin-top:10px;">
+          Tip: This isn’t wellness. It’s capacity. Track honestly and compare Baseline vs Post.
+        </p>
+      `;
+    },
+    collect: (state) => {
+      const fold = document.getElementById("s1_fold")?.value;
+      state.s1_fold = fold === "" ? null : Number(fold);
+
+      state.s2_reps = num("s2_reps");
+      state.s3_balance_sec = num("s3_balance_sec");
+      state.s4_recovery_sec = num("s4_recovery_sec");
     }
   }
 ];
@@ -564,17 +632,23 @@ function showResults(attempt){
   labCard.style.display = "none";
   resultsCard.style.display = "block";
 
-  document.getElementById("ceiN").textContent = attempt.scores.cei;
-  document.getElementById("fluencyN").textContent = attempt.scores.fluency;
-  document.getElementById("flexN").textContent = attempt.scores.flexibility;
-  document.getElementById("assocN").textContent = attempt.scores.associative;
-  document.getElementById("shiftN").textContent = attempt.scores.perspective;
-  document.getElementById("ambN").textContent = attempt.scores.ambiguity;
-  document.getElementById("complexN").textContent = attempt.scores.complexity;
+  document.getElementById("ceiN").textContent = attempt.scores.cei ?? "—";
+  document.getElementById("fluencyN").textContent = attempt.scores.fluency ?? "—";
+  document.getElementById("flexN").textContent = attempt.scores.flexibility ?? "—";
+  document.getElementById("assocN").textContent = attempt.scores.associative ?? "—";
+  document.getElementById("shiftN").textContent = attempt.scores.perspective ?? "—";
+  document.getElementById("ambN").textContent = attempt.scores.ambiguity ?? "—";
+  document.getElementById("complexN").textContent = attempt.scores.complexity ?? "—";
 
-  document.getElementById("totalIdeasN").textContent = attempt.scores.ideaCount;
-  document.getElementById("catsN").textContent = attempt.scores.categoryCount;
-  document.getElementById("timeN").textContent = fmtTime(attempt.meta.activeSeconds);
+  document.getElementById("totalIdeasN").textContent = attempt.scores.ideaCount ?? "—";
+  document.getElementById("catsN").textContent = attempt.scores.categoryCount ?? "—";
+  document.getElementById("timeN").textContent = fmtTime(attempt.meta.activeSeconds ?? 0);
+
+  document.getElementById("seiN").textContent = attempt.scores.sei ?? "—";
+  document.getElementById("eesN").textContent = attempt.scores.ees ?? "—";
+  document.getElementById("gapN").textContent = attempt.scores.gap ?? "—";
+  document.getElementById("rangeN").textContent = attempt.scores.somatic_range ?? "—";
+  document.getElementById("recoveryN").textContent = attempt.scores.somatic_recovery ?? "—";
 
   renderComparison(attempt);
 }
@@ -593,13 +667,9 @@ function startLab(){
 }
 function resetAttempt(clearName){
   stopTimer();
-  const keep = clearName ? {} : { displayName: state.displayName };
-  for(const k of Object.keys(state)){
-    if(k === "timer") continue;
-  }
-  // easiest: reload page-level state by wiping response keys
+  // wipe response keys for rounds + somatic
   for (const key of Object.keys(state)) {
-    if (key.startsWith("r")) delete state[key];
+    if (key.startsWith("r") || key.startsWith("s")) delete state[key];
   }
   state.startedAt = null;
   state.finishedAt = null;
@@ -643,9 +713,50 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
-  // timer
-  timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
-  startTimer(round.timedSeconds);
+  // timer: don't auto-advance for untimed rounds
+  if (round.timedSeconds && round.timedSeconds > 0) {
+    timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
+    startTimer(round.timedSeconds);
+  } else {
+    timerPill.textContent = `Timer: —`;
+    stopTimer();
+  }
+
+  // accuracy UX: validate required rubric fields on input for timed rounds
+  updateNextButtonState();
+  roundBody.addEventListener("input", updateNextButtonState, { once: true });
+}
+
+/* ---- Validation (accuracy) ---- */
+function updateNextButtonState(){
+  const round = ROUNDS[state.roundIndex];
+  const nextBtn = document.getElementById("nextBtn");
+  if(!nextBtn) return;
+
+  // Default allow
+  let ok = true;
+
+  if(round.id === "forced_connection"){
+    ok = [num("r2_coherence"), num("r2_originality"), num("r2_depth")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "perspective_shift"){
+    ok = [num("r3_symmetry"), num("r3_nuance"), num("r3_unique")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "ambiguity"){
+    ok = [num("r4_comfort"), num("r4_urge")].every(v => v !== null && v >= 1 && v <= 10);
+  }
+  if(round.id === "complexity"){
+    ok = [num("r5_clarity"), num("r5_originality"), num("r5_depth")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "somatic"){
+    const fold = document.getElementById("s1_fold")?.value ?? "";
+    ok = fold !== "" &&
+      num("s2_reps") !== null &&
+      num("s3_balance_sec") !== null &&
+      num("s4_recovery_sec") !== null;
+  }
+
+  nextBtn.disabled = !ok;
 }
 
 /* ---- Scoring ---- */
@@ -656,17 +767,17 @@ function splitIdeas(text){
     .filter(Boolean);
 }
 function scoreRound1Fluency(ideaCount){
-  // 0–20
-  if(ideaCount <= 5) return 5;
-  if(ideaCount <= 10) return 10;
-  if(ideaCount <= 20) return 15;
+  // tuned for higher-association prompts (water/rock/light)
+  if(ideaCount <= 10) return 5;
+  if(ideaCount <= 20) return 10;
+  if(ideaCount <= 35) return 15;
   return 20;
 }
 function scoreRound1Flex(categories){
   const c = clamp(categories ?? 0, 0, 20);
-  if(c <= 2) return 5;
-  if(c <= 4) return 10;
-  if(c <= 6) return 15;
+  if(c <= 3) return 5;
+  if(c <= 6) return 10;
+  if(c <= 8) return 15;
   return 20;
 }
 function scoreRubric5(a,b,c){
@@ -700,15 +811,49 @@ function scoreComplexity(vars, loops, clarity, originality, depth){
 function scorePerspective(symmetry, nuance, unique){
   return scoreRubric5(symmetry, nuance, unique);
 }
+
+/* ---- Somatic scoring ---- */
+function scoreCoordination(reps){
+  const r = clamp(reps ?? 0, 0, 200);
+  if(r <= 10) return 5;
+  if(r <= 20) return 10;
+  if(r <= 30) return 15;
+  return 20;
+}
+function scoreBalance(seconds){
+  const s = clamp(seconds ?? 0, 0, 300);
+  if(s <= 5) return 5;
+  if(s <= 15) return 10;
+  if(s <= 25) return 15;
+  return 20;
+}
+function scoreRecovery(seconds){
+  const s = clamp(seconds ?? 999, 0, 999);
+  if(s > 90) return 5;
+  if(s >= 60) return 10;
+  if(s >= 30) return 15;
+  return 20;
+}
+function scoreSomaticIndex(foldScore, reps, balanceSec, recoverySec){
+  const range = clamp(foldScore ?? 0, 0, 20);
+  const coordination = scoreCoordination(reps);
+  const balance = scoreBalance(balanceSec);
+  const recovery = scoreRecovery(recoverySec);
+
+  const total80 = range + coordination + balance + recovery; // 0..80
+  const sei = Math.round((total80 / 80) * 100); // 0..100
+  return { sei, range, coordination, balance, recovery, total80 };
+}
+
 function finishAndScore(){
   stopTimer();
   state.finishedAt = new Date().toISOString();
 
   // round 1 idea count
   const ideas = [
-    ...splitIdeas(state.r1_brick || ""),
-    ...splitIdeas(state.r1_spoon || ""),
-    ...splitIdeas(state.r1_shadow || "")
+    ...splitIdeas(state.r1_water || ""),
+    ...splitIdeas(state.r1_rock || ""),
+    ...splitIdeas(state.r1_light || "")
   ];
   const ideaCount = ideas.length;
   const categoryCount = clamp(state.r1_categories ?? 0, 0, 20);
@@ -721,13 +866,16 @@ function finishAndScore(){
   const ambiguity = scoreAmbiguity(state.r4_comfort, state.r4_urge);
   const complexity = scoreComplexity(state.r5_vars, state.r5_loops, state.r5_clarity, state.r5_originality, state.r5_depth);
 
-  // CEI = sum of 6 dims but keep 0..100 by weighting ambiguity+complexity into one 0..20
-  // We'll average ambiguity+complexity -> 0..20, then sum 5 dims.
+  // CEI
   const ambComplex = Math.round((ambiguity + complexity) / 2);
   const cei = fluency + flexibility + associative + perspective + ambComplex; // 0..100
 
-  // active time is approximated from round timers (we assume they used full timers unless they advanced early)
-  // More accurate: compute from timestamps. We'll do basic: elapsed between startedAt/finishedAt.
+  // Somatic
+  const somatic = scoreSomaticIndex(state.s1_fold, state.s2_reps, state.s3_balance_sec, state.s4_recovery_sec);
+  const ees = Math.round((cei + somatic.sei) / 2);
+  const gap = Math.abs(cei - somatic.sei);
+
+  // active time from timestamps
   const elapsedSec = Math.max(0, Math.round((Date.parse(state.finishedAt) - Date.parse(state.startedAt)) / 1000));
 
   const attempt = {
@@ -739,7 +887,7 @@ function finishAndScore(){
       finishedAt: state.finishedAt,
       activeSeconds: elapsedSec
     },
-    inputs: { ...state }, // includes responses
+    inputs: { ...state },
     scores: {
       cei,
       fluency,
@@ -749,7 +897,14 @@ function finishAndScore(){
       ambiguity,
       complexity,
       ideaCount,
-      categoryCount
+      categoryCount,
+      sei: somatic.sei,
+      ees,
+      gap,
+      somatic_range: somatic.range,
+      somatic_coordination: somatic.coordination,
+      somatic_balance: somatic.balance,
+      somatic_recovery: somatic.recovery
     }
   };
 
@@ -779,7 +934,6 @@ function showStoredResults(){
     alert("No attempts stored on this device yet.");
     return;
   }
-  // show most recent
   showResults(attempts[attempts.length - 1]);
 }
 function renderComparison(current){
@@ -802,6 +956,9 @@ function renderComparison(current){
 
   const rows = [
     ["CEI", baseline.scores.cei, post.scores.cei],
+    ["SEI", baseline.scores.sei, post.scores.sei],
+    ["EES", baseline.scores.ees, post.scores.ees],
+    ["Gap", baseline.scores.gap, post.scores.gap],
     ["Fluency", baseline.scores.fluency, post.scores.fluency],
     ["Flexibility", baseline.scores.flexibility, post.scores.flexibility],
     ["Associative", baseline.scores.associative, post.scores.associative],
@@ -830,9 +987,9 @@ function renderComparison(current){
             ${rows.map(([k,b,p]) => `
               <tr>
                 <td style="padding:10px; border-bottom:1px solid var(--line);">${k}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${b}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${p}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${(p-b)>=0?"+":""}${p-b}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${b ?? "—"}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${p ?? "—"}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${(p-b)>=0?"+":""}${(p-b) ?? "—"}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -854,12 +1011,15 @@ function exportCSV(){
 
   const headers = [
     "id","attemptType","displayName","startedAt","finishedAt","activeSeconds",
-    "cei","fluency","flexibility","associative","perspective","ambiguity","complexity","ideaCount","categoryCount",
+    "cei","sei","ees","gap",
+    "fluency","flexibility","associative","perspective","ambiguity","complexity","ideaCount","categoryCount",
+    "somatic_range","somatic_coordination","somatic_balance","somatic_recovery",
     "r1_categories","r1_unusual",
     "r2_coherence","r2_originality","r2_depth",
     "r3_symmetry","r3_nuance","r3_unique",
     "r4_comfort","r4_urge",
-    "r5_vars","r5_loops","r5_clarity","r5_originality","r5_depth"
+    "r5_vars","r5_loops","r5_clarity","r5_originality","r5_depth",
+    "s1_fold","s2_reps","s3_balance_sec","s4_recovery_sec"
   ];
 
   const rows = attempts.map(a => {
@@ -872,14 +1032,17 @@ function exportCSV(){
       m.startedAt,
       m.finishedAt,
       m.activeSeconds,
-      s.cei, s.fluency, s.flexibility, s.associative, s.perspective, s.ambiguity, s.complexity, s.ideaCount, s.categoryCount,
+      s.cei, s.sei, s.ees, s.gap,
+      s.fluency, s.flexibility, s.associative, s.perspective, s.ambiguity, s.complexity, s.ideaCount, s.categoryCount,
+      s.somatic_range, s.somatic_coordination, s.somatic_balance, s.somatic_recovery,
       get("r1_categories"),
       get("r1_unusual"),
       get("r2_coherence"), get("r2_originality"), get("r2_depth"),
       get("r3_symmetry"), get("r3_nuance"), get("r3_unique"),
       get("r4_comfort"), get("r4_urge"),
       get("r5_vars"), get("r5_loops"), get("r5_clarity"), get("r5_originality"), get("r5_depth"),
-    ].map(v => `"${String(v).replaceAll('"','""')}"`).join(",");
+      get("s1_fold"), get("s2_reps"), get("s3_balance_sec"), get("s4_recovery_sec")
+    ].map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",");
   });
 
   const csv = headers.join(",") + "\n" + rows.join("\n");
