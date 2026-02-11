@@ -716,6 +716,20 @@ function renderRound(){
   roundBody.innerHTML = round.render(state);
 
   // timer: don't auto-advance for untimed rounds
+
+  /* ---- DEBUG: Round 2 next button state ---- */
+  const nextBtn = document.getElementById("nextBtn");
+  console.log("ROUND:", round.id);
+  console.log("NEXT.disabled (after render):", nextBtn?.disabled);
+  console.log("values:", {
+    r2_text_len: (document.getElementById("r2_text")?.value || "").length,
+    r2_coherence: document.getElementById("r2_coherence")?.value,
+    r2_originality: document.getElementById("r2_originality")?.value,
+    r2_depth: document.getElementById("r2_depth")?.value,
+  });
+  setTimeout(() => {
+    console.log("NEXT.disabled (after 0ms):", nextBtn?.disabled);
+  }, 0);
   
    // Remove prior handler (important when moving between rounds)
   if (roundInputHandler) {
