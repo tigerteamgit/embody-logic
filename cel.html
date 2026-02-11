@@ -737,18 +737,18 @@ function updateNextButtonState(){
   let ok = true;
 
   if(round.id === "forced_connection"){
-    ok = [num("r2_coherence"), num("r2_originality"), num("r2_depth")].every(v => v !== null && v >= 1 && v <= 5);
-  }
-  if(round.id === "perspective_shift"){
-    ok = [num("r3_symmetry"), num("r3_nuance"), num("r3_unique")].every(v => v !== null && v >= 1 && v <= 5);
-  }
-  if(round.id === "ambiguity"){
-    ok = [num("r4_comfort"), num("r4_urge")].every(v => v !== null && v >= 1 && v <= 10);
-  }
-  if(round.id === "complexity"){
-    ok = [num("r5_clarity"), num("r5_originality"), num("r5_depth")].every(v => v !== null && v >= 1 && v <= 5);
-  }
-  if(round.id === "somatic"){
+    ok = [num("r2_coherence"), num("r2_originality"), num("r2_depth")]
+      .every(v => v !== null && v >= 1 && v <= 5);
+  } else if(round.id === "perspective_shift"){
+    ok = [num("r3_symmetry"), num("r3_nuance"), num("r3_unique")]
+      .every(v => v !== null && v >= 1 && v <= 5);
+  } else if(round.id === "ambiguity"){
+    ok = [num("r4_comfort"), num("r4_urge")]
+      .every(v => v !== null && v >= 1 && v <= 10);
+  } else if(round.id === "complexity"){
+    ok = [num("r5_clarity"), num("r5_originality"), num("r5_depth")]
+      .every(v => v !== null && v >= 1 && v <= 5);
+  } else if(round.id === "somatic"){
     const fold = document.getElementById("s1_fold")?.value ?? "";
     ok = fold !== "" &&
       num("s2_reps") !== null &&
