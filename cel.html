@@ -704,6 +704,8 @@ function nextRound(){
 }
 
 /* ---- Render ---- */
+let roundInputHandler = null;
+  
 function renderRound(){
   stopTimer();
   setProgress();
@@ -714,6 +716,20 @@ function renderRound(){
   roundBody.innerHTML = round.render(state);
 
   // timer: don't auto-advance for untimed rounds
+  
+   // Remove prior handler (important when moving between rounds)
+  if (roundInputHandler) {
+    roundBody.removeEventListener("input", roundInputHandler);
+  }
+
+  // Keep updating validation as the user types (NO { once:true })
+  roundInputHandler = () => updateNextButtonState();
+  roundBody.addEventListener("input", roundInputHandler);
+
+  // Run once immediately so the button state matches existing values
+  updateNextButtonState();
+
+  // Timer: don't auto-advance for untimed rounds
   if (round.timedSeconds && round.timedSeconds > 0) {
     timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
     startTimer(round.timedSeconds);
@@ -721,10 +737,6 @@ function renderRound(){
     timerPill.textContent = `Timer: —`;
     stopTimer();
   }
-
-  // accuracy UX: validate required rubric fields on input for timed rounds
-  updateNextButtonState();
-  roundBody.addEventListener("input", updateNextButtonState, { once: true });
 }
 
 /* ---- Validation (accuracy) ---- */
