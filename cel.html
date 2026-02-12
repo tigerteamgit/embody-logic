@@ -665,6 +665,7 @@ function startLab(){
   showLab();
   renderRound();
 }
+  
 function resetAttempt(clearName){
   stopTimer();
   // wipe response keys for rounds + somatic
@@ -715,6 +716,9 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
+  if (round.id === "forced_connection") {
+  document.getElementById("nextBtn").disabled = false;
+ }
   // timer: don't auto-advance for untimed rounds
 
   /* ---- DEBUG: Round 2 next button state ---- */
