@@ -665,7 +665,6 @@ function startLab(){
   showLab();
   renderRound();
 }
-  
 function resetAttempt(clearName){
   stopTimer();
   // wipe response keys for rounds + somatic
@@ -705,8 +704,6 @@ function nextRound(){
 }
 
 /* ---- Render ---- */
-let roundInputHandler = null;
-  
 function renderRound(){
   stopTimer();
   setProgress();
@@ -716,38 +713,7 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
-  //if (round.id === "forced_connection") {
-  document.getElementById("nextBtn").disabled = false;
- }
   // timer: don't auto-advance for untimed rounds
-
-  /* ---- DEBUG: Round 2 next button state ---- */
-  const nextBtn = document.getElementById("nextBtn");
-  console.log("ROUND:", round.id);
-  //console.log("NEXT.enabled (after render):", nextBtn?.enabled);
-  console.log("values:", {
-    r2_text_len: (document.getElementById("r2_text")?.value || "").length,
-    r2_coherence: document.getElementById("r2_coherence")?.value,
-    r2_originality: document.getElementById("r2_originality")?.value,
-    r2_depth: document.getElementById("r2_depth")?.value,
-  });
-  setTimeout(() => {
-    //console.log("NEXT.disabled (after 0ms):", nextBtn?.disabled);
-  }, 0);
-  
-   // Remove prior handler (important when moving between rounds)
-  if (roundInputHandler) {
-    roundBody.removeEventListener("input", roundInputHandler);
-  }
-
-  // Keep updating validation as the user types (NO { once:true })
-  roundInputHandler = () => updateNextButtonState();
-  roundBody.addEventListener("input", roundInputHandler);
-
-  // Run once immediately so the button state matches existing values
-  updateNextButtonState();
-
-  // Timer: don't auto-advance for untimed rounds
   if (round.timedSeconds && round.timedSeconds > 0) {
     timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
     startTimer(round.timedSeconds);
@@ -755,9 +721,13 @@ function renderRound(){
     timerPill.textContent = `Timer: —`;
     stopTimer();
   }
+
+  // accuracy UX: validate required rubric fields on input for timed rounds
+  updateNextButtonState();
+  roundBody.addEventListener("input", updateNextButtonState, { once: true });
 }
 
-/* ---- Validation (accuracy) ---- 
+/* ---- Validation (accuracy) ---- */
 function updateNextButtonState(){
   const round = ROUNDS[state.roundIndex];
   const nextBtn = document.getElementById("nextBtn");
@@ -767,18 +737,18 @@ function updateNextButtonState(){
   let ok = true;
 
   if(round.id === "forced_connection"){
-    ok = [num("r2_coherence"), num("r2_originality"), num("r2_depth")]
-      .every(v => v !== null && v >= 1 && v <= 5);
-  } else if(round.id === "perspective_shift"){
-    ok = [num("r3_symmetry"), num("r3_nuance"), num("r3_unique")]
-      .every(v => v !== null && v >= 1 && v <= 5);
-  } else if(round.id === "ambiguity"){
-    ok = [num("r4_comfort"), num("r4_urge")]
-      .every(v => v !== null && v >= 1 && v <= 10);
-  } else if(round.id === "complexity"){
-    ok = [num("r5_clarity"), num("r5_originality"), num("r5_depth")]
-      .every(v => v !== null && v >= 1 && v <= 5);
-  } else if(round.id === "somatic"){
+    ok = [num("r2_coherence"), num("r2_originality"), num("r2_depth")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "perspective_shift"){
+    ok = [num("r3_symmetry"), num("r3_nuance"), num("r3_unique")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "ambiguity"){
+    ok = [num("r4_comfort"), num("r4_urge")].every(v => v !== null && v >= 1 && v <= 10);
+  }
+  if(round.id === "complexity"){
+    ok = [num("r5_clarity"), num("r5_originality"), num("r5_depth")].every(v => v !== null && v >= 1 && v <= 5);
+  }
+  if(round.id === "somatic"){
     const fold = document.getElementById("s1_fold")?.value ?? "";
     ok = fold !== "" &&
       num("s2_reps") !== null &&
@@ -788,7 +758,6 @@ function updateNextButtonState(){
 
   nextBtn.disabled = !ok;
 }
-*/  
 
 /* ---- Scoring ---- */
 function splitIdeas(text){
@@ -886,13 +855,6 @@ function finishAndScore(){
     ...splitIdeas(state.r1_rock || ""),
     ...splitIdeas(state.r1_light || "")
   ];
-
-  /* ---- Disable validation gate: always allow Next ---- */
-function updateNextButtonState(){
-  const nextBtn = document.getElementById("nextBtn");
-  if (nextBtn) nextBtn.disabled = false;
-}
-
   const ideaCount = ideas.length;
   const categoryCount = clamp(state.r1_categories ?? 0, 0, 20);
 
