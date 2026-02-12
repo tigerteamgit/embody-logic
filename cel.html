@@ -885,6 +885,13 @@ function finishAndScore(){
     ...splitIdeas(state.r1_rock || ""),
     ...splitIdeas(state.r1_light || "")
   ];
+
+  /* ---- Disable validation gate: always allow Next ---- */
+function updateNextButtonState(){
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.disabled = false;
+}
+
   const ideaCount = ideas.length;
   const categoryCount = clamp(state.r1_categories ?? 0, 0, 20);
 
