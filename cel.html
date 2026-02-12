@@ -724,7 +724,7 @@ function renderRound(){
   /* ---- DEBUG: Round 2 next button state ---- */
   const nextBtn = document.getElementById("nextBtn");
   console.log("ROUND:", round.id);
-  console.log("NEXT.disabled (after render):", nextBtn?.disabled);
+  console.log("NEXT.enabled (after render):", nextBtn?.enabled);
   console.log("values:", {
     r2_text_len: (document.getElementById("r2_text")?.value || "").length,
     r2_coherence: document.getElementById("r2_coherence")?.value,
