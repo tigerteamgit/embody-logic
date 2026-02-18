@@ -721,6 +721,10 @@ function renderRound(){
 
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
   startTimer(round.timedSeconds);
+  // Always allow skipping ahead
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.disabled = false;
+
 }
 
 /* ---- Validation (accuracy) ---- */
