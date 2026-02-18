@@ -724,7 +724,7 @@ function renderRound(){
 
   // accuracy UX: validate required rubric fields on input for timed rounds
   updateNextButtonState();
-  roundBody.addEventListener("input", updateNextButtonState, { once: true });
+  roundBody.addEventListener("input", updateNextButtonState);
 }
 
 /* ---- Validation (accuracy) ---- */
