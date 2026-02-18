@@ -713,18 +713,14 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
-  // timer: don't auto-advance for untimed rounds
-  if (round.timedSeconds && round.timedSeconds > 0) {
-    timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
-    startTimer(round.timedSeconds);
-  } else {
-    timerPill.textContent = `Timer: —`;
-    stopTimer();
-  }
+  // Keep validation live as user types
+  roundBody.oninput = updateNextButtonState;
 
-  // accuracy UX: validate required rubric fields on input for timed rounds
+  // Apply initial state right after HTML is injected
   updateNextButtonState();
-  roundBody.addEventListener("input", updateNextButtonState);
+
+  timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds)}`;
+  startTimer(round.timedSeconds);
 }
 
 /* ---- Validation (accuracy) ---- */
