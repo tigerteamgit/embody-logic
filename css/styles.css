@@ -568,7 +568,15 @@ document.getElementById("backHomeBtn").addEventListener("click", showIntro);
 document.getElementById("exportBtn").addEventListener("click", exportCSV);
 document.getElementById("resetAllBtn").addEventListener("click", resetAll);
 
-setInterval(forceEnableNext, 250);
+
+/* ---- No validation gate: allow skipping ---- */
+setInterval(alwaysEnableNext, 200);
+
+function alwaysEnableNext() {
+  const btn = document.getElementById("nextBtn");
+  if (btn) btn.disabled = false;
+}
+
 
 
 /* ---- Helpers ---- */
@@ -636,7 +644,9 @@ function showLab(){
   introCard.style.display = "none";
   labCard.style.display = "block";
   resultsCard.style.display = "none";
-  forceEnableNext();
+  /*forceEnableNext();*/
+  alwaysEnableNext();
+
 
 }
 function showResults(attempt){
@@ -737,7 +747,8 @@ function renderRound(){
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) nextBtn.disabled = false;
 
-  forceEnableNext();
+  /*forceEnableNext(); */
+  alwaysEnableNext();
 
 }
 
