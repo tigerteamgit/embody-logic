@@ -573,7 +573,10 @@ function showLab(){
   introCard.style.display = "none";
   labCard.style.display = "block";
   resultsCard.style.display = "none";
-  hardUnlockNext();
+  /*hardUnlockNext();
+  // ✅ FORCE ENABLE NEXT (do this LAST) */
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.disabled = false;
 }
 
 function showResults(attempt){
@@ -650,7 +653,6 @@ function nextRound(){
 
 /* ---- Render ---- */
 function renderRound(){
-  document.getElementById("nextBtn").disabled = false
 
   stopTimer();
   setProgress();
@@ -664,10 +666,13 @@ function renderRound(){
 
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
   startTimer(round.timedSeconds || 0);
-  document.getElementById("nextBtn").disabled = false
+
+  // ✅ FORCE ENABLE NEXT (do this LAST)
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.disabled = false;
 
 }
-document.getElementById("nextBtn").disabled = false
+
 
 /* ---- Scoring ---- */
 function splitIdeas(text){
