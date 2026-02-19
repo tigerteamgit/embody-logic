@@ -285,8 +285,56 @@ function fmtTime(sec){
 /* ---- Round definitions ---- */
 const ROUNDS = [
   {
+    id: "somatic",
+    title: "Round 6 — Somatic Expansion Lab",
+    desc: "No equipment. Self-timed. Enter results. Same protocol for Baseline + Post.",
+    timedSeconds: 0,
+    render: (state) => `
+      <div class="notice"><strong>Instructions:</strong> Do each test safely. Use a phone timer if needed. Enter honest results.</div>
+
+      <h3 style="margin-top:10px;">Test 1 — Forward Fold Reach (0–20)</h3>
+      <label>Select your best match</label>
+      <select id="s1_fold">
+        <option value="">Select…</option>
+        <option value="0"  ${state.s1_fold==0  ? "selected":""}>0 — Hands above knees</option>
+        <option value="5"  ${state.s1_fold==5  ? "selected":""}>5 — Fingertips to shins</option>
+        <option value="10" ${state.s1_fold==10 ? "selected":""}>10 — Fingertips to ankles</option>
+        <option value="15" ${state.s1_fold==15 ? "selected":""}>15 — Touch toes</option>
+        <option value="20" ${state.s1_fold==20 ? "selected":""}>20 — Palms flat on floor</option>
+      </select>
+
+      <div class="hr"></div>
+
+      <h3>Test 2 — Cross-Body Coordination (30 sec)</h3>
+      <p class="muted">Opposite elbow to knee, alternating, for 30 seconds. Count smooth reps.</p>
+      <label>Reps in 30 seconds</label>
+      <input id="s2_reps" type="number" min="0" max="200" value="${state.s2_reps ?? ""}" placeholder="e.g., 18" />
+
+      <div class="hr"></div>
+
+      <h3>Test 3 — Balance (Eyes closed)</h3>
+      <p class="muted">Single leg, eyes closed. Time until you step/wobble out.</p>
+      <label>Seconds held</label>
+      <input id="s3_balance_sec" type="number" min="0" max="300" value="${state.s3_balance_sec ?? ""}" placeholder="e.g., 12" />
+
+      <div class="hr"></div>
+
+      <h3>Test 4 — Recovery (15 squats)</h3>
+      <p class="muted">Do 15 bodyweight squats. Time until your breathing feels calm again.</p>
+      <label>Seconds to calm breathing</label>
+      <input id="s4_recovery_sec" type="number" min="0" max="600" value="${state.s4_recovery_sec ?? ""}" placeholder="e.g., 55" />
+    `,
+    collect: (state) => {
+      const fold = document.getElementById("s1_fold")?.value;
+      state.s1_fold = fold === "" ? null : Number(fold);
+      state.s2_reps = num("s2_reps");
+      state.s3_balance_sec = num("s3_balance_sec");
+      state.s4_recovery_sec = num("s4_recovery_sec");
+    }
+  },
+    
     id: "divergence",
-    title: "Round 1 — Divergence Sprint (Raw Range)",
+    title: "Round 2 — Divergence Sprint (Raw Range)",
     desc: "5 minutes. List uses / meanings / metaphors. Speed > polish.",
     timedSeconds: 5 * 60,
     render: (state) => `
@@ -325,7 +373,7 @@ const ROUNDS = [
   },
   {
     id: "forced_connection",
-    title: "Round 2 — Forced Connection Engine",
+    title: "Round 3 — Forced Connection Engine",
     desc: "Connect three words into one idea. Then score it with the rubric.",
     timedSeconds: 5 * 60,
     render: (state) => `
@@ -361,7 +409,7 @@ const ROUNDS = [
   },
   {
     id: "perspective_shift",
-    title: "Round 3 — Perspective Shift Drill",
+    title: "Round 4 — Perspective Shift Drill",
     desc: "Argue both sides. 3 FOR and 3 AGAINST. Then score your balance + nuance.",
     timedSeconds: 5 * 60,
     render: (state) => `
@@ -398,7 +446,7 @@ const ROUNDS = [
   },
   {
     id: "ambiguity",
-    title: "Round 4 — Ambiguity Field",
+    title: "Round 5 — Ambiguity Field",
     desc: "Answer a vague prompt. Then rate your comfort and your urge to resolve.",
     timedSeconds: 4 * 60,
     render: (state) => `
@@ -425,7 +473,7 @@ const ROUNDS = [
   },
   {
     id: "complexity",
-    title: "Round 5 — Complexity Handling",
+    title: "Round 6 — Complexity Handling",
     desc: "Design a system. Score how many variables and feedback loops you included.",
     timedSeconds: 6 * 60,
     render: (state) => `
