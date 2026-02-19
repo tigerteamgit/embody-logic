@@ -103,7 +103,6 @@
       color:#fff;
     }
     button:disabled{ opacity:.5; cursor:not-allowed; }
-
     .hr{ height:1px; background: var(--line); margin: 14px 0; }
     .kpi{
       display:grid;
@@ -145,6 +144,8 @@
       background: rgba(255,255,255,.9);
       transition: width .2s ease;
     }
+
+    /* ---- Responsive KPI ---- */
     @media (max-width: 900px){
       .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
@@ -181,9 +182,11 @@
       This is a timed creativity + cognition experiment + a simple somatic expansion check. You’ll take it twice:
       once at the start (Baseline) and once at the end (Post). Your results stay on your device and can be exported as CSV.
     </p>
+
     <div class="notice">
       <strong>How to win:</strong> don’t filter. Don’t polish. Generate, connect, and shift perspectives quickly.
     </div>
+
     <div class="row">
       <div>
         <label>Attempt type</label>
@@ -197,6 +200,7 @@
         <input id="displayName" type="text" placeholder="e.g., Jesse" />
       </div>
     </div>
+
     <div class="btns">
       <button class="btn-primary" id="startBtn" type="button">Start Lab</button>
       <button class="btn-soft" id="viewResultsBtn" type="button">View Stored Results</button>
@@ -207,10 +211,14 @@
     <h2 id="roundTitle">Round</h2>
     <p class="muted" id="roundDesc"></p>
     <div class="hr"></div>
+
     <div id="roundBody"></div>
+
     <div class="btns">
       <button class="btn-soft" id="backBtn" type="button">Back</button>
-      <button class="btn-primary" id="nextBtn" type="button">Next</button>
+      <!-- ✅ NO "Next" BUTTON ANYMORE -->
+      <!-- ✅ NEW "Proceed" BUTTON: NEVER DISABLED, NO GATES -->
+      <button class="btn-primary" id="proceedBtn" type="button">Proceed</button>
     </div>
   </div>
 
@@ -243,6 +251,7 @@
     </div>
 
     <div class="hr"></div>
+
     <div id="comparisonBlock"></div>
 
     <div class="btns">
@@ -253,34 +262,16 @@
 </main>
 
 <script>
-/* ---- Helpers ---- */
-function val(id){ const el=document.getElementById(id); return el ? el.value.trim() : ""; }
-function num(id){
-  const el=document.getElementById(id);
-  if(!el) return null;
-  const v = el.value === "" ? null : Number(el.value);
-  return Number.isFinite(v) ? v : null;
-}
-function escapeHtml(s){
-  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
-}
-function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
-function fmtTime(sec){
-  const m = Math.floor(sec/60);
-  const s = sec%60;
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-
 /* ---- Storage ---- */
 const STORAGE_KEY = "cel_attempts_v1";
 
-/* ---- Rounds ---- */
+/* ---- Round definitions ---- */
 const ROUNDS = [
   {
     id: "divergence",
     title: "Round 1 — Divergence Sprint (Raw Range)",
     desc: "5 minutes. List uses / meanings / metaphors. Speed > polish.",
-    timedSeconds: 5*60,
+    timedSeconds: 5 * 60,
     render: (state) => `
       <div class="notice"><strong>Rules:</strong> One idea per line. Don’t censor. Keep moving.</div>
 
@@ -295,8 +286,11 @@ const ROUNDS = [
 
       <div class="row">
         <div>
-          <label>Category count (0–10+)</label>
+          <label>Category count (0–10+) (how many distinct buckets you hit)</label>
           <input id="r1_categories" type="number" min="0" max="20" value="${state.r1_categories ?? ""}" placeholder="e.g., 8" />
+          <div class="muted" style="font-size:12px;margin-top:6px;">
+            Examples: physical, emotional, scientific, cultural, symbolic, functional, narrative, systemic, philosophical…
+          </div>
         </div>
         <div>
           <label>Most unusual idea (copy/paste one line)</label>
@@ -316,15 +310,29 @@ const ROUNDS = [
     id: "forced_connection",
     title: "Round 2 — Forced Connection Engine",
     desc: "Connect three words into one idea. Then score it with the rubric.",
-    timedSeconds: 5*60,
+    timedSeconds: 5 * 60,
     render: (state) => `
       <div class="notice"><strong>Your words:</strong> Ocean • Clock • Thread</div>
       <label>Write a paragraph connecting all three</label>
       <textarea id="r2_text" placeholder="Write 6–10 lines...">${escapeHtml(state.r2_text || "")}</textarea>
+
       <div class="row">
-        <div><label>Coherence (1–5)</label><input id="r2_coherence" type="number" min="1" max="5" value="${state.r2_coherence ?? ""}" /></div>
-        <div><label>Originality (1–5)</label><input id="r2_originality" type="number" min="1" max="5" value="${state.r2_originality ?? ""}" /></div>
-        <div><label>Depth (1–5)</label><input id="r2_depth" type="number" min="1" max="5" value="${state.r2_depth ?? ""}" /></div>
+        <div>
+          <label>Coherence (1–5)</label>
+          <input id="r2_coherence" type="number" min="1" max="5" value="${state.r2_coherence ?? ""}" />
+        </div>
+        <div>
+          <label>Originality (1–5)</label>
+          <input id="r2_originality" type="number" min="1" max="5" value="${state.r2_originality ?? ""}" />
+        </div>
+        <div>
+          <label>Depth (1–5)</label>
+          <input id="r2_depth" type="number" min="1" max="5" value="${state.r2_depth ?? ""}" />
+        </div>
+      </div>
+
+      <div class="muted" style="font-size:12px;">
+        Rubric: Coherence = it makes sense; Originality = not cliché; Depth = layers, implications, metaphor, mechanism.
       </div>
     `,
     collect: (state) => {
@@ -338,17 +346,29 @@ const ROUNDS = [
     id: "perspective_shift",
     title: "Round 3 — Perspective Shift Drill",
     desc: "Argue both sides. 3 FOR and 3 AGAINST. Then score your balance + nuance.",
-    timedSeconds: 5*60,
+    timedSeconds: 5 * 60,
     render: (state) => `
       <div class="notice"><strong>Claim:</strong> “Constraints increase creativity.”</div>
+
       <label>FOR — 3 arguments (one per line)</label>
       <textarea id="r3_for" placeholder="1) ...&#10;2) ...&#10;3) ...">${escapeHtml(state.r3_for || "")}</textarea>
+
       <label>AGAINST — 3 arguments (one per line)</label>
       <textarea id="r3_against" placeholder="1) ...&#10;2) ...&#10;3) ...">${escapeHtml(state.r3_against || "")}</textarea>
+
       <div class="row">
-        <div><label>Symmetry (1–5)</label><input id="r3_symmetry" type="number" min="1" max="5" value="${state.r3_symmetry ?? ""}" /></div>
-        <div><label>Nuance (1–5)</label><input id="r3_nuance" type="number" min="1" max="5" value="${state.r3_nuance ?? ""}" /></div>
-        <div><label>Non-redundancy (1–5)</label><input id="r3_unique" type="number" min="1" max="5" value="${state.r3_unique ?? ""}" /></div>
+        <div>
+          <label>Symmetry (1–5) (both sides equally strong?)</label>
+          <input id="r3_symmetry" type="number" min="1" max="5" value="${state.r3_symmetry ?? ""}" />
+        </div>
+        <div>
+          <label>Nuance (1–5) (non-obvious, multi-layer?)</label>
+          <input id="r3_nuance" type="number" min="1" max="5" value="${state.r3_nuance ?? ""}" />
+        </div>
+        <div>
+          <label>Non-redundancy (1–5) (unique points?)</label>
+          <input id="r3_unique" type="number" min="1" max="5" value="${state.r3_unique ?? ""}" />
+        </div>
       </div>
     `,
     collect: (state) => {
@@ -363,14 +383,25 @@ const ROUNDS = [
     id: "ambiguity",
     title: "Round 4 — Ambiguity Field",
     desc: "Answer a vague prompt. Then rate your comfort and your urge to resolve.",
-    timedSeconds: 4*60,
+    timedSeconds: 4 * 60,
     render: (state) => `
       <div class="notice"><strong>Prompt:</strong> Gravity is half as strong tomorrow. What changes, and what new industries appear?</div>
       <label>Your response</label>
       <textarea id="r4_text" placeholder="Write freely...">${escapeHtml(state.r4_text || "")}</textarea>
+
       <div class="row">
-        <div><label>Comfort in uncertainty (1–10)</label><input id="r4_comfort" type="number" min="1" max="10" value="${state.r4_comfort ?? ""}" /></div>
-        <div><label>Urge to resolve quickly (1–10)</label><input id="r4_urge" type="number" min="1" max="10" value="${state.r4_urge ?? ""}" /></div>
+        <div>
+          <label>Comfort in uncertainty (1–10)</label>
+          <input id="r4_comfort" type="number" min="1" max="10" value="${state.r4_comfort ?? ""}" />
+        </div>
+        <div>
+          <label>Urge to resolve quickly (1–10) (higher = more urgency)</label>
+          <input id="r4_urge" type="number" min="1" max="10" value="${state.r4_urge ?? ""}" />
+        </div>
+      </div>
+
+      <div class="muted" style="font-size:12px;">
+        Tip: ambiguity tolerance isn’t passivity — it’s capacity to stay open without collapsing into a single answer.
       </div>
     `,
     collect: (state) => {
@@ -383,19 +414,40 @@ const ROUNDS = [
     id: "complexity",
     title: "Round 5 — Complexity Handling",
     desc: "Design a system. Score how many variables and feedback loops you included.",
-    timedSeconds: 6*60,
+    timedSeconds: 6 * 60,
     render: (state) => `
       <div class="notice"><strong>Challenge:</strong> Design a system that helps a city reduce traffic without building new roads.</div>
       <label>Your system sketch (text)</label>
       <textarea id="r5_text" placeholder="Include constraints, incentives, feedback loops, unintended consequences...">${escapeHtml(state.r5_text || "")}</textarea>
+
       <div class="row">
-        <div><label>Variables considered (0–20)</label><input id="r5_vars" type="number" min="0" max="50" value="${state.r5_vars ?? ""}" /></div>
-        <div><label>Feedback loops (0–10)</label><input id="r5_loops" type="number" min="0" max="20" value="${state.r5_loops ?? ""}" /></div>
+        <div>
+          <label>Variables considered (0–20)</label>
+          <input id="r5_vars" type="number" min="0" max="50" value="${state.r5_vars ?? ""}" placeholder="e.g., 9" />
+          <div class="muted" style="font-size:12px;margin-top:6px;">
+            Examples: pricing, transit frequency, employer incentives, zoning, school schedules, freight windows, remote work, enforcement…
+          </div>
+        </div>
+        <div>
+          <label>Feedback loops / second-order effects (0–10)</label>
+          <input id="r5_loops" type="number" min="0" max="20" value="${state.r5_loops ?? ""}" placeholder="e.g., 3" />
+          <div class="muted" style="font-size:12px;margin-top:6px;">Count explicit loops: “If X increases, Y decreases, which causes Z…”</div>
+        </div>
       </div>
+
       <div class="row">
-        <div><label>Clarity (1–5)</label><input id="r5_clarity" type="number" min="1" max="5" value="${state.r5_clarity ?? ""}" /></div>
-        <div><label>Originality (1–5)</label><input id="r5_originality" type="number" min="1" max="5" value="${state.r5_originality ?? ""}" /></div>
-        <div><label>Depth (1–5)</label><input id="r5_depth" type="number" min="1" max="5" value="${state.r5_depth ?? ""}" /></div>
+        <div>
+          <label>Clarity (1–5)</label>
+          <input id="r5_clarity" type="number" min="1" max="5" value="${state.r5_clarity ?? ""}" />
+        </div>
+        <div>
+          <label>Originality (1–5)</label>
+          <input id="r5_originality" type="number" min="1" max="5" value="${state.r5_originality ?? ""}" />
+        </div>
+        <div>
+          <label>Depth (1–5)</label>
+          <input id="r5_depth" type="number" min="1" max="5" value="${state.r5_depth ?? ""}" />
+        </div>
       </div>
     `,
     collect: (state) => {
@@ -413,7 +465,9 @@ const ROUNDS = [
     desc: "No equipment. Self-timed. Enter results. Same protocol for Baseline + Post.",
     timedSeconds: 0,
     render: (state) => `
-      <div class="notice"><strong>Instructions:</strong> Do each test safely. Use a phone timer if needed. Enter honest results.</div>
+      <div class="notice">
+        <strong>Instructions:</strong> Do each test safely. Use a phone timer if needed. Enter honest results.
+      </div>
 
       <h3 style="margin-top:10px;">Test 1 — Forward Fold Reach (0–20)</h3>
       <label>Select your best match</label>
@@ -446,6 +500,10 @@ const ROUNDS = [
       <p class="muted">Do 15 bodyweight squats. Time until your breathing feels calm again.</p>
       <label>Seconds to calm breathing</label>
       <input id="s4_recovery_sec" type="number" min="0" max="600" value="${state.s4_recovery_sec ?? ""}" placeholder="e.g., 55" />
+
+      <p class="muted" style="font-size:12px; margin-top:10px;">
+        Tip: This isn’t wellness. It’s capacity. Track honestly and compare Baseline vs Post.
+      </p>
     `,
     collect: (state) => {
       const fold = document.getElementById("s1_fold")?.value;
@@ -457,7 +515,7 @@ const ROUNDS = [
   }
 ];
 
-/* ---- State ---- */
+/* ---- App state ---- */
 const state = {
   attemptType: "baseline",
   displayName: "",
@@ -465,7 +523,7 @@ const state = {
   finishedAt: null,
   activeSeconds: 0,
   roundIndex: 0,
-  timer: { running:false, endAt: null, intervalId: null },
+  timer: { running:false, endAt: null, intervalId: null }
 };
 
 /* ---- DOM ---- */
@@ -480,63 +538,57 @@ const progressBar = document.getElementById("progressBar");
 const stepLabel = document.getElementById("stepLabel");
 const modeLabel = document.getElementById("modeLabel");
 
-/* ---- THE FIX: document-level unlocker ---- */
-let observedNextBtn = null;
-let nextBtnObserver = null;
+document.getElementById("startBtn").addEventListener("click", startLab);
+document.getElementById("viewResultsBtn").addEventListener("click", showStoredResults);
+document.getElementById("backBtn").addEventListener("click", prevRound);
 
-function hardUnlockNext(){
-  const btn = document.getElementById("nextBtn");
-  if(!btn) return;
+/* ✅ Proceed replaces Next, no gates */
+document.getElementById("proceedBtn").addEventListener("click", nextRound);
 
-  // Always strip disabled both ways
-  btn.disabled = false;
-  btn.removeAttribute("disabled");
+document.getElementById("retakeBtn").addEventListener("click", () => { resetAttempt(false); showIntro(); });
+document.getElementById("backHomeBtn").addEventListener("click", showIntro);
+document.getElementById("exportBtn").addEventListener("click", exportCSV);
+document.getElementById("resetAllBtn").addEventListener("click", resetAll);
 
-  // If the node changed, re-observe it
-  if(observedNextBtn !== btn){
-    observedNextBtn = btn;
-
-    if(nextBtnObserver) nextBtnObserver.disconnect();
-    nextBtnObserver = new MutationObserver(() => {
-      btn.disabled = false;
-      btn.removeAttribute("disabled");
-    });
-    nextBtnObserver.observe(btn, { attributes:true, attributeFilter:["disabled"] });
-  }
+/* ---- Helpers ---- */
+function val(id){ const el=document.getElementById(id); return el ? el.value.trim() : ""; }
+function num(id){
+  const el=document.getElementById(id);
+  if(!el) return null;
+  const v = el.value === "" ? null : Number(el.value);
+  return Number.isFinite(v) ? v : null;
 }
-
-// Watch the whole document for ANY DOM changes and keep Next unlocked.
-new MutationObserver(() => hardUnlockNext())
-  .observe(document.documentElement, { childList:true, subtree:true, attributes:true });
-
-/* ---- Bind once ---- */
-document.getElementById("startBtn").onclick = startLab;
-document.getElementById("viewResultsBtn").onclick = showStoredResults;
-document.getElementById("backBtn").onclick = prevRound;
-document.getElementById("nextBtn").onclick = () => { hardUnlockNext(); nextRound(); };
-document.getElementById("retakeBtn").onclick = () => { resetAttempt(false); showIntro(); };
-document.getElementById("backHomeBtn").onclick = showIntro;
-document.getElementById("exportBtn").onclick = exportCSV;
-document.getElementById("resetAllBtn").onclick = resetAll;
-
-hardUnlockNext();
-
-/* ---- Progress ---- */
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+function fmtTime(sec){
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
 function setProgress(){
-  const totalSteps = ROUNDS.length + 1;
+  const totalSteps = ROUNDS.length + 1; // intro + rounds (visual only)
   const step = state.roundIndex + 1;
   progressBar.style.width = `${Math.round((step/totalSteps)*100)}%`;
   stepLabel.textContent = `Round ${state.roundIndex+1} of ${ROUNDS.length}`;
   modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
 }
 
-/* ---- Timer (no auto-advance) ---- */
+/* ---- Timer ---- */
 function startTimer(seconds){
   stopTimer();
+
+  // Somatic round uses self-timing; do NOT auto-advance.
   if(!seconds || seconds <= 0){
-    timerPill.textContent = `Timer: 00:00`;
+    timerPill.textContent = "Timer: —";
     return;
   }
+
   state.timer.running = true;
   const now = Date.now();
   state.timer.endAt = now + seconds*1000;
@@ -545,9 +597,10 @@ function startTimer(seconds){
     const leftMs = state.timer.endAt - Date.now();
     const left = Math.max(0, Math.ceil(leftMs/1000));
     timerPill.textContent = `Timer: ${fmtTime(left)}`;
+
     if(left <= 0){
       stopTimer();
-      timerPill.textContent = `Timer: 00:00`;
+      nextRound(); // auto-advance when time ends
     }
   }, 250);
 }
@@ -567,18 +620,12 @@ function showIntro(){
   progressBar.style.width = "0%";
   stepLabel.textContent = "Step";
   modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
-  hardUnlockNext();
 }
 function showLab(){
   introCard.style.display = "none";
   labCard.style.display = "block";
   resultsCard.style.display = "none";
-  /*hardUnlockNext();
-  // ✅ FORCE ENABLE NEXT (do this LAST) */
-  const nextBtn = document.getElementById("nextBtn");
-  if (nextBtn) nextBtn.disabled = false;
 }
-
 function showResults(attempt){
   introCard.style.display = "none";
   labCard.style.display = "none";
@@ -653,7 +700,6 @@ function nextRound(){
 
 /* ---- Render ---- */
 function renderRound(){
-
   stopTimer();
   setProgress();
 
@@ -662,17 +708,19 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
-  hardUnlockNext(); // after injection
+  // ✅ Proceed is NEVER disabled (and no other code touches it)
+  const proceedBtn = document.getElementById("proceedBtn");
+  if (proceedBtn){
+    proceedBtn.disabled = false;
+    proceedBtn.removeAttribute("disabled");
+  }
 
-  timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
-  startTimer(round.timedSeconds || 0);
+  timerPill.textContent = round.timedSeconds && round.timedSeconds > 0
+    ? `Timer: ${fmtTime(round.timedSeconds)}`
+    : "Timer: —";
 
-  // ✅ FORCE ENABLE NEXT (do this LAST)
-  const nextBtn = document.getElementById("nextBtn");
-  if (nextBtn) nextBtn.disabled = false;
-
+  startTimer(round.timedSeconds);
 }
-
 
 /* ---- Scoring ---- */
 function splitIdeas(text){
@@ -695,15 +743,15 @@ function scoreRubric5(a,b,c){
   const A = clamp(a ?? 1, 1, 5);
   const B = clamp(b ?? 1, 1, 5);
   const C = clamp(c ?? 1, 1, 5);
-  const sum = A+B+C;
-  const norm = (sum - 3) / 12;
+  const sum = A+B+C; // 3..15
+  const norm = (sum - 3) / 12; // 0..1
   return Math.round(norm * 20);
 }
 function scoreAmbiguity(comfort, urge){
   const c = clamp(comfort ?? 1, 1, 10);
   const u = clamp(urge ?? 10, 1, 10);
-  const urgeRev = 11 - u;
-  const avg = (c + urgeRev) / 2;
+  const urgeRev = 11 - u; // 10..1
+  const avg = (c + urgeRev) / 2; // 1..10
   return Math.round(((avg - 1) / 9) * 20);
 }
 function scoreComplexity(vars, loops, clarity, originality, depth){
@@ -717,6 +765,8 @@ function scoreComplexity(vars, loops, clarity, originality, depth){
 function scorePerspective(symmetry, nuance, unique){
   return scoreRubric5(symmetry, nuance, unique);
 }
+
+/* ---- Somatic scoring ---- */
 function scoreCoordination(reps){
   const r = clamp(reps ?? 0, 0, 200);
   if(r <= 10) return 5;
@@ -743,8 +793,9 @@ function scoreSomaticIndex(foldScore, reps, balanceSec, recoverySec){
   const coordination = scoreCoordination(reps);
   const balance = scoreBalance(balanceSec);
   const recovery = scoreRecovery(recoverySec);
-  const total80 = range + coordination + balance + recovery;
-  const sei = Math.round((total80 / 80) * 100);
+
+  const total80 = range + coordination + balance + recovery; // 0..80
+  const sei = Math.round((total80 / 80) * 100); // 0..100
   return { sei, range, coordination, balance, recovery, total80 };
 }
 
@@ -768,24 +819,37 @@ function finishAndScore(){
   const complexity = scoreComplexity(state.r5_vars, state.r5_loops, state.r5_clarity, state.r5_originality, state.r5_depth);
 
   const ambComplex = Math.round((ambiguity + complexity) / 2);
-  const cei = fluency + flexibility + associative + perspective + ambComplex;
+  const cei = fluency + flexibility + associative + perspective + ambComplex; // 0..100
 
   const somatic = scoreSomaticIndex(state.s1_fold, state.s2_reps, state.s3_balance_sec, state.s4_recovery_sec);
   const ees = Math.round((cei + somatic.sei) / 2);
   const gap = Math.abs(cei - somatic.sei);
 
-  const elapsedSec = state.startedAt
-    ? Math.max(0, Math.round((Date.parse(state.finishedAt) - Date.parse(state.startedAt)) / 1000))
-    : 0;
+  const elapsedSec = Math.max(0, Math.round((Date.parse(state.finishedAt) - Date.parse(state.startedAt)) / 1000));
 
   const attempt = {
     id: cryptoRandomId(),
-    meta: { attemptType: state.attemptType, displayName: state.displayName, startedAt: state.startedAt, finishedAt: state.finishedAt, activeSeconds: elapsedSec },
+    meta: {
+      attemptType: state.attemptType,
+      displayName: state.displayName,
+      startedAt: state.startedAt,
+      finishedAt: state.finishedAt,
+      activeSeconds: elapsedSec
+    },
     inputs: { ...state },
     scores: {
-      cei, fluency, flexibility, associative, perspective, ambiguity, complexity,
-      ideaCount, categoryCount,
-      sei: somatic.sei, ees, gap,
+      cei,
+      fluency,
+      flexibility,
+      associative,
+      perspective,
+      ambiguity,
+      complexity,
+      ideaCount,
+      categoryCount,
+      sei: somatic.sei,
+      ees,
+      gap,
       somatic_range: somatic.range,
       somatic_coordination: somatic.coordination,
       somatic_balance: somatic.balance,
@@ -804,7 +868,9 @@ function loadAttempts(){
     if(!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 function saveAttempt(attempt){
   const attempts = loadAttempts();
@@ -823,20 +889,61 @@ function renderComparison(){
   const attempts = loadAttempts();
   const baseline = [...attempts].reverse().find(a => a.meta.attemptType === "baseline");
   const post = [...attempts].reverse().find(a => a.meta.attemptType === "post");
-  const el = document.getElementById("comparisonBlock");
 
+  const el = document.getElementById("comparisonBlock");
   if(!baseline || !post){
-    el.innerHTML = `<div class="notice"><strong>Comparison:</strong> Take both a Baseline and a Post attempt on this device to see before/after deltas.</div>`;
+    el.innerHTML = `
+      <div class="notice">
+        <strong>Comparison:</strong> Take both a Baseline and a Post attempt on this device to see before/after deltas.
+      </div>
+    `;
     return;
   }
 
   const delta = post.scores.cei - baseline.scores.cei;
   const klass = delta >= 8 ? "good" : (delta >= 2 ? "warn" : (delta >= 0 ? "warn" : "bad"));
 
+  const rows = [
+    ["CEI", baseline.scores.cei, post.scores.cei],
+    ["SEI", baseline.scores.sei, post.scores.sei],
+    ["EES", baseline.scores.ees, post.scores.ees],
+    ["Gap", baseline.scores.gap, post.scores.gap],
+    ["Fluency", baseline.scores.fluency, post.scores.fluency],
+    ["Flexibility", baseline.scores.flexibility, post.scores.flexibility],
+    ["Associative", baseline.scores.associative, post.scores.associative],
+    ["Perspective", baseline.scores.perspective, post.scores.perspective],
+    ["Ambiguity", baseline.scores.ambiguity, post.scores.ambiguity],
+    ["Complexity", baseline.scores.complexity, post.scores.complexity],
+    ["Ideas", baseline.scores.ideaCount, post.scores.ideaCount],
+    ["Categories", baseline.scores.categoryCount, post.scores.categoryCount],
+  ];
+
   el.innerHTML = `
     <div class="card" style="background:#fff; border:1px solid var(--line); box-shadow:none;">
       <h3>Baseline vs Post (on this device)</h3>
       <p class="muted">Delta (CEI): <span class="${klass}">${delta >= 0 ? "+" : ""}${delta}</span></p>
+      <div style="overflow:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:10px; border-bottom:1px solid var(--line);">Metric</th>
+              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Baseline</th>
+              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Post</th>
+              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(([k,b,p]) => `
+              <tr>
+                <td style="padding:10px; border-bottom:1px solid var(--line);">${k}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${b ?? "—"}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${p ?? "—"}</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${(p-b)>=0?"+":""}${(p-b) ?? "—"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -849,16 +956,46 @@ function exportCSV(){
     return;
   }
 
-  const headers = ["id","attemptType","displayName","startedAt","finishedAt","activeSeconds","cei","sei","ees","gap"];
+  const headers = [
+    "id","attemptType","displayName","startedAt","finishedAt","activeSeconds",
+    "cei","sei","ees","gap",
+    "fluency","flexibility","associative","perspective","ambiguity","complexity","ideaCount","categoryCount",
+    "somatic_range","somatic_coordination","somatic_balance","somatic_recovery",
+    "r1_categories","r1_unusual",
+    "r2_coherence","r2_originality","r2_depth",
+    "r3_symmetry","r3_nuance","r3_unique",
+    "r4_comfort","r4_urge",
+    "r5_vars","r5_loops","r5_clarity","r5_originality","r5_depth",
+    "s1_fold","s2_reps","s3_balance_sec","s4_recovery_sec"
+  ];
+
   const rows = attempts.map(a => {
-    const m=a.meta, s=a.scores;
-    const vals = [a.id,m.attemptType,m.displayName||"",m.startedAt,m.finishedAt,m.activeSeconds,s.cei,s.sei,s.ees,s.gap];
-    return vals.map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",");
+    const m = a.meta, s = a.scores, i = a.inputs;
+    const get = (k) => (i && i[k] !== undefined && i[k] !== null) ? String(i[k]).replaceAll('"','""') : "";
+    return [
+      a.id,
+      m.attemptType,
+      m.displayName || "",
+      m.startedAt,
+      m.finishedAt,
+      m.activeSeconds,
+      s.cei, s.sei, s.ees, s.gap,
+      s.fluency, s.flexibility, s.associative, s.perspective, s.ambiguity, s.complexity, s.ideaCount, s.categoryCount,
+      s.somatic_range, s.somatic_coordination, s.somatic_balance, s.somatic_recovery,
+      get("r1_categories"),
+      get("r1_unusual"),
+      get("r2_coherence"), get("r2_originality"), get("r2_depth"),
+      get("r3_symmetry"), get("r3_nuance"), get("r3_unique"),
+      get("r4_comfort"), get("r4_urge"),
+      get("r5_vars"), get("r5_loops"), get("r5_clarity"), get("r5_originality"), get("r5_depth"),
+      get("s1_fold"), get("s2_reps"), get("s3_balance_sec"), get("s4_recovery_sec")
+    ].map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",");
   });
 
   const csv = headers.join(",") + "\n" + rows.join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
   a.href = url;
   a.download = `creative-expansion-lab_${new Date().toISOString().slice(0,10)}.csv`;
@@ -880,7 +1017,6 @@ function cryptoRandomId(){
 
 /* ---- Init ---- */
 showIntro();
-hardUnlockNext();
 </script>
 </body>
 </html>
