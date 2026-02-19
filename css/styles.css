@@ -262,6 +262,13 @@
 </main>
 
 <script>
+
+/* ---- Kill validation gate: Next is always enabled ---- */
+function forceEnableNext() {
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn) nextBtn.disabled = false;
+}
+
 /* ---- Storage ---- */
 const STORAGE_KEY = "cel_attempts_v1";
 
@@ -561,6 +568,9 @@ document.getElementById("backHomeBtn").addEventListener("click", showIntro);
 document.getElementById("exportBtn").addEventListener("click", exportCSV);
 document.getElementById("resetAllBtn").addEventListener("click", resetAll);
 
+setInterval(forceEnableNext, 250);
+
+
 /* ---- Helpers ---- */
 function val(id){ const el=document.getElementById(id); return el ? el.value.trim() : ""; }
 function num(id){
@@ -626,6 +636,8 @@ function showLab(){
   introCard.style.display = "none";
   labCard.style.display = "block";
   resultsCard.style.display = "none";
+  forceEnableNext();
+
 }
 function showResults(attempt){
   introCard.style.display = "none";
@@ -724,6 +736,8 @@ function renderRound(){
   // Always allow skipping ahead
   const nextBtn = document.getElementById("nextBtn");
   if (nextBtn) nextBtn.disabled = false;
+
+  forceEnableNext();
 
 }
 
