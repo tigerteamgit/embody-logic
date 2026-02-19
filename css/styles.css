@@ -577,7 +577,8 @@ function alwaysEnableNext() {
   if (btn) btn.disabled = false;
 }
 
-
+function enableNextAlways(){
+  const next = document.getElementById("
 
 /* ---- Helpers ---- */
 function val(id){ const el=document.getElementById(id); return el ? el.value.trim() : ""; }
@@ -748,7 +749,9 @@ function renderRound(){
   if (nextBtn) nextBtn.disabled = false;
 
   /*forceEnableNext(); */
-  alwaysEnableNext();
+  /*alwaysEnableNext(); */
+  // ✅ allow skipping
+  enableNextAlways();
 
 }
 
