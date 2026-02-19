@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   /*<meta name="viewport" content="width=device-width, initial-scale=1" />*/
-  <meta name="cel-version" content="2026-02-19-1"/>
+  <meta name="cel-version" content="2026-02-19-1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <link rel="stylesheet" href="style.css?v=1">
+
   <title>Creative Expansion Lab</title>
   <style>
     /* ---- Base ---- */
