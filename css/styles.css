@@ -650,6 +650,8 @@ function nextRound(){
 
 /* ---- Render ---- */
 function renderRound(){
+  document.getElementById("nextBtn").disabled = false
+
   stopTimer();
   setProgress();
 
@@ -662,7 +664,10 @@ function renderRound(){
 
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
   startTimer(round.timedSeconds || 0);
+  document.getElementById("nextBtn").disabled = false
+
 }
+document.getElementById("nextBtn").disabled = false
 
 /* ---- Scoring ---- */
 function splitIdeas(text){
