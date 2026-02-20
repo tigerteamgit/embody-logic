@@ -236,8 +236,8 @@
     <div class="kpi" style="margin-top:10px;">
       <div class="box"><div class="n" id="ambN">—</div><div class="t">Ambiguity Tolerance</div></div>
       <div class="box"><div class="n" id="complexN">—</div><div class="t">Complexity Handling</div></div>
-      <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Round 1)</div></div>
-      <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Round 1)</div></div>
+      <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Divergence)</div></div>
+      <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Divergence)</div></div>
       <div class="box"><div class="n" id="timeN">—</div><div class="t">Active Time</div></div>
     </div>
 
@@ -282,11 +282,11 @@ function fmtTime(sec){
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
-/* ---- Round definitions ---- */
+/* ---- Round definitions (Somatic first) ---- */
 const ROUNDS = [
   {
     id: "somatic",
-    title: "Round 6 — Somatic Expansion Lab",
+    title: "Round 1 — Somatic Expansion (Body → Mind)",
     desc: "No equipment. Self-timed. Enter results. Same protocol for Baseline + Post.",
     timedSeconds: 0,
     render: (state) => `
@@ -332,7 +332,8 @@ const ROUNDS = [
       state.s4_recovery_sec = num("s4_recovery_sec");
     }
   },
-    
+
+  {
     id: "divergence",
     title: "Round 2 — Divergence Sprint (Raw Range)",
     desc: "5 minutes. List uses / meanings / metaphors. Speed > polish.",
@@ -371,6 +372,7 @@ const ROUNDS = [
       state.r1_unusual = val("r1_unusual");
     }
   },
+
   {
     id: "forced_connection",
     title: "Round 3 — Forced Connection Engine",
@@ -407,6 +409,7 @@ const ROUNDS = [
       state.r2_depth = num("r2_depth");
     }
   },
+
   {
     id: "perspective_shift",
     title: "Round 4 — Perspective Shift Drill",
@@ -444,6 +447,7 @@ const ROUNDS = [
       state.r3_unique = num("r3_unique");
     }
   },
+
   {
     id: "ambiguity",
     title: "Round 5 — Ambiguity Field",
@@ -471,6 +475,7 @@ const ROUNDS = [
       state.r4_urge = num("r4_urge");
     }
   },
+
   {
     id: "complexity",
     title: "Round 6 — Complexity Handling",
@@ -515,54 +520,6 @@ const ROUNDS = [
       state.r5_originality = num("r5_originality");
       state.r5_depth = num("r5_depth");
     }
-  },
-  {
-    id: "somatic",
-    title: "Round 6 — Somatic Expansion Lab",
-    desc: "No equipment. Self-timed. Enter results. Same protocol for Baseline + Post.",
-    timedSeconds: 0,
-    render: (state) => `
-      <div class="notice"><strong>Instructions:</strong> Do each test safely. Use a phone timer if needed. Enter honest results.</div>
-
-      <h3 style="margin-top:10px;">Test 1 — Forward Fold Reach (0–20)</h3>
-      <label>Select your best match</label>
-      <select id="s1_fold">
-        <option value="">Select…</option>
-        <option value="0"  ${state.s1_fold==0  ? "selected":""}>0 — Hands above knees</option>
-        <option value="5"  ${state.s1_fold==5  ? "selected":""}>5 — Fingertips to shins</option>
-        <option value="10" ${state.s1_fold==10 ? "selected":""}>10 — Fingertips to ankles</option>
-        <option value="15" ${state.s1_fold==15 ? "selected":""}>15 — Touch toes</option>
-        <option value="20" ${state.s1_fold==20 ? "selected":""}>20 — Palms flat on floor</option>
-      </select>
-
-      <div class="hr"></div>
-
-      <h3>Test 2 — Cross-Body Coordination (30 sec)</h3>
-      <p class="muted">Opposite elbow to knee, alternating, for 30 seconds. Count smooth reps.</p>
-      <label>Reps in 30 seconds</label>
-      <input id="s2_reps" type="number" min="0" max="200" value="${state.s2_reps ?? ""}" placeholder="e.g., 18" />
-
-      <div class="hr"></div>
-
-      <h3>Test 3 — Balance (Eyes closed)</h3>
-      <p class="muted">Single leg, eyes closed. Time until you step/wobble out.</p>
-      <label>Seconds held</label>
-      <input id="s3_balance_sec" type="number" min="0" max="300" value="${state.s3_balance_sec ?? ""}" placeholder="e.g., 12" />
-
-      <div class="hr"></div>
-
-      <h3>Test 4 — Recovery (15 squats)</h3>
-      <p class="muted">Do 15 bodyweight squats. Time until your breathing feels calm again.</p>
-      <label>Seconds to calm breathing</label>
-      <input id="s4_recovery_sec" type="number" min="0" max="600" value="${state.s4_recovery_sec ?? ""}" placeholder="e.g., 55" />
-    `,
-    collect: (state) => {
-      const fold = document.getElementById("s1_fold")?.value;
-      state.s1_fold = fold === "" ? null : Number(fold);
-      state.s2_reps = num("s2_reps");
-      state.s3_balance_sec = num("s3_balance_sec");
-      state.s4_recovery_sec = num("s4_recovery_sec");
-    }
   }
 ];
 
@@ -598,7 +555,6 @@ function unlockNext(){
 }
 unlockNext();
 
-// If ANY code tries to set disabled, instantly remove it.
 new MutationObserver(() => unlockNext())
   .observe(nextBtn, { attributes: true, attributeFilter: ["disabled"] });
 
@@ -751,7 +707,6 @@ function renderRound(){
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
 
-  // absolutely force Next enabled after content injection
   unlockNext();
 
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
