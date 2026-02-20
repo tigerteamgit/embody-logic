@@ -146,37 +146,9 @@
       transition: width .2s ease;
     }
 
-    /* ---- NEW: Split layout (left app + right visual) ---- */
-    .split{
-      display:grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 22px;
-      align-items: start;
-    }
-    .rightVisual{
-      position: sticky;
-      top: 92px; /* clears sticky header */
-    }
-    .rightVisual iframe{
-      width:100%;
-      height: 560px;
-      border:none;
-      border-radius:14px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.25);
-      background: rgba(255,255,255,.06);
-    }
-    .rightLabel{
-      font-size:12px;
-      color: rgba(255,255,255,.7);
-      margin: 8px 2px 10px;
-    }
-
-    /* ---- Responsive KPI + split ---- */
+    /* ---- Responsive KPI ---- */
     @media (max-width: 900px){
       .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .split{ grid-template-columns: 1fr; }
-      .rightVisual{ position: relative; top:auto; }
-      .rightVisual iframe{ height: 420px; }
     }
   </style>
 </head>
@@ -205,105 +177,86 @@
 </header>
 
 <main>
-  <!-- NEW: split wrapper -->
-  <div class="split">
+  <div class="card" id="introCard">
+    <h1>Baseline + Post Course Assessment</h1>
+    <p class="muted">
+      This is a timed creativity + cognition experiment + a simple somatic expansion check. You’ll take it twice:
+      once at the start (Baseline) and once at the end (Post). Your results stay on your device and can be exported as CSV.
+    </p>
 
-    <!-- LEFT: your entire app UI -->
-    <div class="leftApp">
-      <div class="card" id="introCard">
-        <h1>Baseline + Post Course Assessment</h1>
-        <p class="muted">
-          This is a timed creativity + cognition experiment + a simple somatic expansion check. You’ll take it twice:
-          once at the start (Baseline) and once at the end (Post). Your results stay on your device and can be exported as CSV.
-        </p>
+    <div class="notice">
+      <strong>How to win:</strong> don’t filter. Don’t polish. Generate, connect, and shift perspectives quickly.
+    </div>
 
-        <div class="notice">
-          <strong>How to win:</strong> don’t filter. Don’t polish. Generate, connect, and shift perspectives quickly.
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Attempt type</label>
-            <select id="attemptType">
-              <option value="baseline">Baseline</option>
-              <option value="post">Post</option>
-            </select>
-          </div>
-          <div>
-            <label>Display name (optional)</label>
-            <input id="displayName" type="text" placeholder="e.g., Jesse" />
-          </div>
-        </div>
-
-        <div class="btns">
-          <button class="btn-primary" id="startBtn" type="button">Start Lab</button>
-          <button class="btn-soft" id="viewResultsBtn" type="button">View Stored Results</button>
-        </div>
+    <div class="row">
+      <div>
+        <label>Attempt type</label>
+        <select id="attemptType">
+          <option value="baseline">Baseline</option>
+          <option value="post">Post</option>
+        </select>
       </div>
-
-      <div class="card" id="labCard" style="display:none;">
-        <h2 id="roundTitle">Round</h2>
-        <p class="muted" id="roundDesc"></p>
-        <div class="hr"></div>
-
-        <div id="roundBody"></div>
-
-        <div class="btns">
-          <button class="btn-soft" id="backBtn" type="button">Back</button>
-          <button class="btn-primary" id="nextBtn" type="button">Next</button>
-        </div>
-      </div>
-
-      <div class="card" id="resultsCard" style="display:none;">
-        <h2>Results</h2>
-        <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
-
-        <div class="kpi" style="margin-top:12px;">
-          <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
-          <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
-          <div class="box"><div class="n" id="flexN">—</div><div class="t">Flexibility</div></div>
-          <div class="box"><div class="n" id="assocN">—</div><div class="t">Associative Strength</div></div>
-          <div class="box"><div class="n" id="shiftN">—</div><div class="t">Perspective Shift</div></div>
-        </div>
-
-        <div class="kpi" style="margin-top:10px;">
-          <div class="box"><div class="n" id="ambN">—</div><div class="t">Ambiguity Tolerance</div></div>
-          <div class="box"><div class="n" id="complexN">—</div><div class="t">Complexity Handling</div></div>
-          <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Divergence)</div></div>
-          <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Divergence)</div></div>
-          <div class="box"><div class="n" id="timeN">—</div><div class="t">Active Time</div></div>
-        </div>
-
-        <div class="kpi" style="margin-top:10px;">
-          <div class="box"><div class="n" id="seiN">—</div><div class="t">Somatic Expansion Index (0–100)</div></div>
-          <div class="box"><div class="n" id="eesN">—</div><div class="t">Embodied Expansion Score</div></div>
-          <div class="box"><div class="n" id="gapN">—</div><div class="t">Integration Gap (lower is better)</div></div>
-          <div class="box"><div class="n" id="rangeN">—</div><div class="t">Range (0–20)</div></div>
-          <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
-        </div>
-
-        <div class="hr"></div>
-
-        <div id="comparisonBlock"></div>
-
-        <div class="btns">
-          <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
-          <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
-        </div>
+      <div>
+        <label>Display name (optional)</label>
+        <input id="displayName" type="text" placeholder="e.g., Jesse" />
       </div>
     </div>
 
-    <!-- RIGHT: visual iframe -->
-    <aside class="rightVisual" aria-label="Embody circuits visual">
-      <div class="rightLabel">Looping embodied circuits preview</div>
-      <iframe
-        src="visual.html"
-        loading="lazy"
-        allow="autoplay"
-        title="Embody Circuits Visual"
-      ></iframe>
-    </aside>
+    <div class="btns">
+      <button class="btn-primary" id="startBtn" type="button">Start Lab</button>
+      <button class="btn-soft" id="viewResultsBtn" type="button">View Stored Results</button>
+    </div>
+  </div>
 
+  <div class="card" id="labCard" style="display:none;">
+    <h2 id="roundTitle">Round</h2>
+    <p class="muted" id="roundDesc"></p>
+    <div class="hr"></div>
+
+    <div id="roundBody"></div>
+
+    <div class="btns">
+      <button class="btn-soft" id="backBtn" type="button">Back</button>
+      <button class="btn-primary" id="nextBtn" type="button">Next</button>
+    </div>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none;">
+    <h2>Results</h2>
+    <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
+
+    <div class="kpi" style="margin-top:12px;">
+      <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
+      <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
+      <div class="box"><div class="n" id="flexN">—</div><div class="t">Flexibility</div></div>
+      <div class="box"><div class="n" id="assocN">—</div><div class="t">Associative Strength</div></div>
+      <div class="box"><div class="n" id="shiftN">—</div><div class="t">Perspective Shift</div></div>
+    </div>
+
+    <div class="kpi" style="margin-top:10px;">
+      <div class="box"><div class="n" id="ambN">—</div><div class="t">Ambiguity Tolerance</div></div>
+      <div class="box"><div class="n" id="complexN">—</div><div class="t">Complexity Handling</div></div>
+      <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Divergence)</div></div>
+      <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Divergence)</div></div>
+      <div class="box"><div class="n" id="timeN">—</div><div class="t">Active Time</div></div>
+    </div>
+
+    <div class="kpi" style="margin-top:10px;">
+      <div class="box"><div class="n" id="seiN">—</div><div class="t">Somatic Expansion Index (0–100)</div></div>
+      <div class="box"><div class="n" id="eesN">—</div><div class="t">Embodied Expansion Score</div></div>
+      <div class="box"><div class="n" id="gapN">—</div><div class="t">Integration Gap (lower is better)</div></div>
+      <div class="box"><div class="n" id="rangeN">—</div><div class="t">Range (0–20)</div></div>
+      <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div id="comparisonBlock"></div>
+
+    <div class="btns">
+      <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
+      <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
+    </div>
   </div>
 </main>
 
