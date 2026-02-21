@@ -8,107 +8,127 @@
   <link rel="manifest" href="manifest.json" />
 
   <style>
-    /* ---- Welcome Split Layout (local to index.html) ---- */
-    .welcome-split{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 18px;
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 26px;
-      align-items: start;
-    }
-    @media (max-width: 980px){
-      .welcome-split{ grid-template-columns: 1fr; }
+    /* ---- Background Video Layout ---- */
+    body{
+      margin:0;
+      min-height:100vh;
+      overflow-x:hidden;
     }
 
-    /* Keep your existing .container styling but let split control width */
-    main.container{
-      max-width: none; /* prevent double-max-width constraints */
+    .bg-wrap{
+      position: relative;
+      min-height: 100vh;
+      display: block;
+      isolation: isolate; /* ensures z-index stacking behaves */
     }
 
-    /* ---- Right Visual Card ---- */
-    .visual-card{
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 12px 30px rgba(0,0,0,.25);
-      position: sticky;
-      top: 18px;
-    }
-    @media (max-width: 980px){
-      .visual-card{ position: relative; top:auto; }
-    }
-
-    .visual-head{
-      padding: 14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }
-    .visual-head .label{
-      color: rgba(255,255,255,.90);
-      font-weight: 700;
-      font-size: 13px;
-      letter-spacing: .2px;
-    }
-    .visual-head .hint{
-      color: rgba(255,255,255,.60);
-      font-size: 12px;
-    }
-
-    .visual-media{
-      aspect-ratio: 4 / 5;
+    .bg-video{
+      position: fixed;
+      inset: 0;
       width: 100%;
-      background:
-        radial-gradient(circle at 40% 30%, rgba(0,200,255,.14), transparent 60%),
-        radial-gradient(circle at 70% 70%, rgba(255,0,200,.10), transparent 60%),
-        rgba(0,0,0,.30);
-    }
-    .visual-media video,
-    .visual-media img{
-      width:100%;
-      height:100%;
-      display:block;
+      height: 100%;
       object-fit: cover;
-      filter: saturate(1.15) contrast(1.06);
+      z-index: 0;
+      filter: saturate(1.1) contrast(1.05);
+      transform: translateZ(0); /* smoother on some GPUs */
     }
 
-    /* Glow aura */
-    .visual-card::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      border-radius: 18px;
-      background: conic-gradient(from 180deg,
-        rgba(0,255,200,.0),
-        rgba(0,255,200,.18),
-        rgba(130,80,255,.20),
-        rgba(255,80,200,.18),
-        rgba(0,255,200,.0)
-      );
-      filter: blur(14px);
-      opacity: .55;
-      pointer-events:none;
-      animation: aura 3.2s ease-in-out infinite;
+    /* Dark overlay for readability */
+    .bg-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background:
+        radial-gradient(circle at 40% 20%, rgba(0,0,0,.35), rgba(0,0,0,.75) 70%),
+        linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.78));
+      pointer-events: none;
     }
-    @keyframes aura{
-      0%,100%{ opacity:.32; transform: scale(1.0); }
-      50%{ opacity:.65; transform: scale(1.01); }
+
+    /* Keep your header above the video */
+    header.header{
+      position: relative;
+      z-index: 3;
+    }
+
+    /* Main content floats above */
+    main.container{
+      position: relative;
+      z-index: 3;
+      max-width: 860px;          /* matches your design scale */
+      margin: 0 auto;
+      padding: 56px 18px 80px;
+    }
+
+    /* Make the welcome block feel centered like a hero */
+    .hero{
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero h1{
+      margin-top: 0;
+    }
+
+    /* ---- Hover polish ---- */
+    .card{
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 18px 45px rgba(0,0,0,.25);
+      border-color: rgba(255,255,255,.10);
+    }
+
+    a.button{
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+      will-change: transform;
+    }
+    a.button:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,.22);
+    }
+    a.button:active{
+      transform: translateY(0px);
+    }
+
+    /* Optional: add a subtle glass feel if your .card is plain white in styles.css */
+    /* If your existing cards are already white and you like it, you can delete this block. */
+    .card{
+      backdrop-filter: blur(8px);
+    }
+
+    /* ---- Reduced motion: stop background video ---- */
+    @media (prefers-reduced-motion: reduce){
+      .bg-video{ display:none; }
+      .bg-wrap{
+        background: #0b0b0b url("assets/embody-bg.jpg") center/cover no-repeat;
+      }
     }
   </style>
 </head>
 
 <body>
-  <header class="header">Embody Logic</header>
+  <div class="bg-wrap">
+    <!-- Background video -->
+    <video
+      class="bg-video"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="auto"
+      poster="assets/embody-bg.jpg"
+    >
+      <source src="assets/embody-bg.mp4" type="video/mp4" />
+    </video>
 
-  <main class="container">
-    <div class="welcome-split">
+    <div class="bg-overlay"></div>
 
-      <!-- LEFT: existing content -->
-      <div>
+    <header class="header">Embody Logic</header>
+
+    <main class="container">
+      <div class="hero">
         <h1>Welcome</h1>
         <p>An interactive embodied learning experience.</p>
 
@@ -141,26 +161,22 @@
           <a class="button" href="book.html">Open the Full Book</a>
         </section>
       </div>
+    </main>
 
-      <!-- RIGHT: animated visual -->
-      <aside class="visual-card" aria-label="Animated circuitry preview">
-        <div class="visual-head">
-          <div class="label">Embodied Circuits</div>
-          <div class="hint">looping visual</div>
-        </div>
+    <script src="js/app.js"></script>
 
-        <div class="visual-media">
-          <!-- Recommended: MP4 (fast & smooth). Fallback: GIF -->
-          <video autoplay loop muted playsinline preload="auto">
-            <source src="img/watermarked-circuitry.mp4" type="video/mp4" />
-            <img src="img/watermarked-circuitry.gif" alt="See-through figure with flashing circuits" />
-          </video>
-        </div>
-      </aside>
-
-    </div>
-  </main>
-
-  <script src="js/app.js"></script>
+    <!-- Safety: nudge playback on some mobile browsers -->
+    <script>
+      (function(){
+        const v = document.querySelector(".bg-video");
+        if(!v) return;
+        const tryPlay = () => v.play().catch(() => {});
+        document.addEventListener("DOMContentLoaded", tryPlay, { once:true });
+        document.addEventListener("visibilitychange", () => {
+          if(document.visibilityState === "visible") tryPlay();
+        });
+      })();
+    </script>
+  </div>
 </body>
 </html>
