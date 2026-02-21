@@ -6,37 +6,159 @@
   <title>Embody Logic</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="manifest" href="manifest.json" />
+
+  <style>
+    /* ---- Welcome Split Layout (local to index.html) ---- */
+    .welcome-split{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 18px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 26px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .welcome-split{ grid-template-columns: 1fr; }
+    }
+
+    /* Keep your existing .container styling but let split control width */
+    main.container{
+      max-width: none; /* prevent double-max-width constraints */
+    }
+
+    /* ---- Right Visual Card ---- */
+    .visual-card{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      position: sticky;
+      top: 18px;
+    }
+    @media (max-width: 980px){
+      .visual-card{ position: relative; top:auto; }
+    }
+
+    .visual-head{
+      padding: 14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .visual-head .label{
+      color: rgba(255,255,255,.90);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .2px;
+    }
+    .visual-head .hint{
+      color: rgba(255,255,255,.60);
+      font-size: 12px;
+    }
+
+    .visual-media{
+      aspect-ratio: 4 / 5;
+      width: 100%;
+      background:
+        radial-gradient(circle at 40% 30%, rgba(0,200,255,.14), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255,0,200,.10), transparent 60%),
+        rgba(0,0,0,.30);
+    }
+    .visual-media video,
+    .visual-media img{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit: cover;
+      filter: saturate(1.15) contrast(1.06);
+    }
+
+    /* Glow aura */
+    .visual-card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: 18px;
+      background: conic-gradient(from 180deg,
+        rgba(0,255,200,.0),
+        rgba(0,255,200,.18),
+        rgba(130,80,255,.20),
+        rgba(255,80,200,.18),
+        rgba(0,255,200,.0)
+      );
+      filter: blur(14px);
+      opacity: .55;
+      pointer-events:none;
+      animation: aura 3.2s ease-in-out infinite;
+    }
+    @keyframes aura{
+      0%,100%{ opacity:.32; transform: scale(1.0); }
+      50%{ opacity:.65; transform: scale(1.01); }
+    }
+  </style>
 </head>
+
 <body>
   <header class="header">Embody Logic</header>
 
   <main class="container">
-    <h1>Welcome</h1>
-    <p>An interactive embodied learning experience.</p>
+    <div class="welcome-split">
 
-    <!-- Preview always available -->
-    <section class="card">
-      <h2>Preview</h2>
-      <p>You can explore a few pages before buying.</p>
-      <a class="button" href="book.html?mode=preview">Open Preview</a>
-    </section>
+      <!-- LEFT: existing content -->
+      <div>
+        <h1>Welcome</h1>
+        <p>An interactive embodied learning experience.</p>
 
-    <!-- Purchase CTA -->
-    <section class="card">
-      <h2>Get Full Access</h2>
-      <p>Purchase to receive your private access link instantly.</p>
-      <a class="button primary" id="buyBtn" href="https://tigertech5.gumroad.com/l/dqwmf?_gl=1*1f4id8i*_ga*MTgzODMzMTcxMi4xNzcwMzg3Mzc0*_ga_6LJN6D94N6*czE3NzA1ODQ4OTEkbzckZzEkdDE3NzA1ODc0NzckajQkbDAkaDA."
-        target="_blank" rel="noopener">
-        Buy on Gumroad
-      </a>
-    </section>
+        <!-- Preview always available -->
+        <section class="card">
+          <h2>Preview</h2>
+          <p>You can explore a few pages before buying.</p>
+          <a class="button" href="book.html?mode=preview">Open Preview</a>
+        </section>
 
-    <!-- Full access button (hidden unless token is valid) -->
-    <section class="card" id="fullAccessCard" style="display:none;">
-      <h2>Full Access</h2>
-      <p>You’re unlocked.</p>
-      <a class="button" href="book.html">Open the Full Book</a>
-    </section>
+        <!-- Purchase CTA -->
+        <section class="card">
+          <h2>Get Full Access</h2>
+          <p>Purchase to receive your private access link instantly.</p>
+          <a
+            class="button primary"
+            id="buyBtn"
+            href="https://tigertech5.gumroad.com/l/dqwmf?_gl=1*1f4id8i*_ga*MTgzODMzMTcxMi4xNzcwMzg3Mzc0*_ga_6LJN6D94N6*czE3NzA1ODQ4OTEkbzckZzEkdDE3NzA1ODc0NzckajQkbDAkaDA."
+            target="_blank"
+            rel="noopener"
+          >
+            Buy on Gumroad
+          </a>
+        </section>
+
+        <!-- Full access button (hidden unless token is valid) -->
+        <section class="card" id="fullAccessCard" style="display:none;">
+          <h2>Full Access</h2>
+          <p>You’re unlocked.</p>
+          <a class="button" href="book.html">Open the Full Book</a>
+        </section>
+      </div>
+
+      <!-- RIGHT: animated visual -->
+      <aside class="visual-card" aria-label="Animated circuitry preview">
+        <div class="visual-head">
+          <div class="label">Embodied Circuits</div>
+          <div class="hint">looping visual</div>
+        </div>
+
+        <div class="visual-media">
+          <!-- Recommended: MP4 (fast & smooth). Fallback: GIF -->
+          <video autoplay loop muted playsinline preload="auto">
+            <source src="img/watermarked-circuitry.mp4" type="video/mp4" />
+            <img src="img/watermarked-circuitry.gif" alt="See-through figure with flashing circuits" />
+          </video>
+        </div>
+      </aside>
+
+    </div>
   </main>
 
   <script src="js/app.js"></script>
