@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
 
   <style>
-    /* ---- Background Video Layout ---- */
+    /* ---- Base ---- */
     body{
       margin:0;
       min-height:100vh;
@@ -19,64 +19,115 @@
       position: relative;
       min-height: 100vh;
       display: block;
-      isolation: isolate; /* ensures z-index stacking behaves */
+      isolation: isolate;
     }
 
-    .bg-video{
+    /* ---- Background IMAGE (replaces video) ---- */
+    .bg-image{
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       z-index: 0;
-      filter: saturate(1.1) contrast(1.05);
-      transform: translateZ(0); /* smoother on some GPUs */
+
+      /* Brighter + punchier */
+      filter: brightness(1.18) saturate(1.18) contrast(1.08);
+      transform: translateZ(0);
+
+      /* Fade-in + subtle life */
+      opacity: 0;
+      transform: scale(1.04);
+      animation:
+        bgFade 900ms ease-out forwards,
+        bgPulse 4.8s ease-in-out 900ms infinite,
+        bgDrift 14s ease-in-out 900ms infinite;
+      will-change: transform, opacity, filter;
+      pointer-events: none;
+      user-select: none;
     }
 
-    /* Dark overlay for readability */
+    @keyframes bgFade{ to{ opacity: 1; } }
+
+    /* Gentle "breathing" brightness pulse */
+    @keyframes bgPulse{
+      0%,100%{ filter: brightness(1.12) saturate(1.16) contrast(1.07); }
+      50%{    filter: brightness(1.28) saturate(1.22) contrast(1.10); }
+    }
+
+    /* Micro zoom drift (Ken Burns-lite) */
+    @keyframes bgDrift{
+      0%,100%{ transform: scale(1.04) translate3d(0,0,0); }
+      50%{    transform: scale(1.07) translate3d(0,-8px,0); }
+    }
+
+    /* ---- Overlay for readability (lighter so bg shows) ---- */
     .bg-overlay{
       position: fixed;
       inset: 0;
       z-index: 1;
       background:
-        radial-gradient(circle at 40% 20%, rgba(0,0,0,.35), rgba(0,0,0,.75) 70%),
-        linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.78));
+        radial-gradient(circle at 40% 20%, rgba(0,0,0,.12), rgba(0,0,0,.48) 70%),
+        linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.55));
       pointer-events: none;
     }
 
-    /* Keep your header above the video */
+    /* Keep header above bg */
     header.header{
       position: relative;
       z-index: 3;
+
+      opacity: 0;
+      transform: translateY(6px);
+      animation: uiFade 650ms ease-out 180ms forwards;
     }
 
     /* Main content floats above */
     main.container{
       position: relative;
       z-index: 3;
-      max-width: 860px;          /* matches your design scale */
+      max-width: 860px;
       margin: 0 auto;
-      padding: 56px 18px 80px;
+      padding: 0 18px;
+
+      /* Vertically center content */
+      min-height: calc(100vh - 60px);
+      display: flex;
+      align-items: center;
+
+      opacity: 0;
+      transform: translateY(10px);
+      animation: uiFade 720ms ease-out 260ms forwards;
     }
 
-    /* Make the welcome block feel centered like a hero */
+    @keyframes uiFade{
+      to{ opacity: 1; transform: translateY(0); }
+    }
+
     .hero{
+      width: 100%;
       max-width: 860px;
       margin: 0 auto;
     }
-
-    .hero h1{
-      margin-top: 0;
-    }
+    .hero h1{ margin-top: 0; }
 
     /* ---- Hover polish ---- */
     .card{
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      backdrop-filter: blur(8px);
+
+      /* subtle breathing shadow */
+      animation: cardBreath 6s ease-in-out 1.2s infinite;
     }
     .card:hover{
       transform: translateY(-2px);
       box-shadow: 0 18px 45px rgba(0,0,0,.25);
       border-color: rgba(255,255,255,.10);
+      animation-play-state: paused; /* hover feels crisp */
+    }
+    @keyframes cardBreath{
+      0%,100%{ box-shadow: 0 12px 28px rgba(0,0,0,.18); }
+      50%{    box-shadow: 0 18px 46px rgba(0,0,0,.26); }
     }
 
     a.button{
@@ -92,17 +143,15 @@
       transform: translateY(0px);
     }
 
-    /* Optional: add a subtle glass feel if your .card is plain white in styles.css */
-    /* If your existing cards are already white and you like it, you can delete this block. */
-    .card{
-      backdrop-filter: blur(8px);
-    }
-
-    /* ---- Reduced motion: stop background video ---- */
+    /* ---- Reduced motion ---- */
     @media (prefers-reduced-motion: reduce){
-      .bg-video{ display:none; }
-      .bg-wrap{
-        background: #0b0b0b url("img/nerves-bg.png") center/cover no-repeat;
+      .bg-image,
+      header.header,
+      main.container,
+      .card{
+        animation: none !important;
+        transform: none !important;
+        opacity: 1 !important;
       }
     }
   </style>
@@ -110,18 +159,8 @@
 
 <body>
   <div class="bg-wrap">
-    <!-- Background video -->
-    <video
-      class="bg-video"
-      autoplay
-      loop
-      muted
-      playsinline
-      preload="auto"
-      poster="img/nerves-bg.png"
-    >
-      <source src="img/nerves-bg.png" type="image" />
-    </video>
+    <!-- Background image (reliable on GitHub Pages) -->
+    <img class="bg-image" src="img/nerves-bg.png" alt="" aria-hidden="true" />
 
     <div class="bg-overlay"></div>
 
@@ -164,19 +203,6 @@
     </main>
 
     <script src="js/app.js"></script>
-
-    <!-- Safety: nudge playback on some mobile browsers -->
-    <script>
-      (function(){
-        const v = document.querySelector(".bg-video");
-        if(!v) return;
-        const tryPlay = () => v.play().catch(() => {});
-        document.addEventListener("DOMContentLoaded", tryPlay, { once:true });
-        document.addEventListener("visibilitychange", () => {
-          if(document.visibilityState === "visible") tryPlay();
-        });
-      })();
-    </script>
   </div>
 </body>
 </html>
