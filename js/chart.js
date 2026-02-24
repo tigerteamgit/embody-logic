@@ -123,6 +123,7 @@
   }
 
   function renderCharts(){
+    console.log("[CEL] renderCharts v2026-02-24 polish");
     if(typeof Chart === "undefined"){
       console.error("[CEL] Chart.js is not loaded. Make sure the CDN script is BEFORE this script.");
       return;
