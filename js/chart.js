@@ -92,10 +92,13 @@
       datasets: [{
         label: "Somatic Scores",
         data: [19, 15, 0, 5, 9],
-        backgroundColor: "rgba(20, 20, 20, 0.85)",   // black fill
-        borderColor: "rgba(0, 0, 0, 1)",             // solid black
-        borderWidth: 1.5,
-        hoverBackgroundColor: "rgba(40, 40, 40, 0.95)"
+        backgroundColor: backgroundColor: [
+        '#FF6B6B',
+        '#4ECDC4',
+        '#FFE66D',
+        '#1A535C',
+        '#FF9F1C'
+        ]   // black fill
       }]
     };
 
