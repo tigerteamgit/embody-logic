@@ -973,5 +973,56 @@ function cryptoRandomId(){
 /* ---- Init ---- */
 showIntro();
 </script>
+  
+<!-- Charts  -->
+<canvas id="somaticChart"></canvas>
+<canvas id="creativeChart"></canvas>  
+  
+<!-- 1️⃣ Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 2️⃣ Create charts AFTER Chart.js loads -->
+<script>
+
+/* ---- Somatic Chart ---- */
+new Chart(document.getElementById("somaticChart"), {
+  type: "bar",
+  data: {
+    labels: [
+      "Somatic Index",
+      "Embodied Expansion",
+      "Range",
+      "Recovery",
+      "Integration Gap"
+    ],
+    datasets: [{
+      label: "Somatic Scores",
+      data: [19,15,0,5,9]
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero: true, max: 100 }
+    }
+  }
+});  
+  
+/* ---- Creative Chart ---- */
+new Chart(document.getElementById("creativeChart"), {
+  type: "bar",
+  data: {
+    labels: ["Creative Index","Fluency","Flexibility"],
+    datasets: [{
+      label: "Creative Scores",
+      data: [10,5,5]
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero: true, max: 100 }
+    }
+  }
+});
+</script>
 </body>
 </html>
