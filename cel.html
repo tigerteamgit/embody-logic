@@ -103,9 +103,7 @@
       color:#fff;
     }
     button:disabled{ opacity:.5; cursor:not-allowed; }
-
     .hr{ height:1px; background: var(--line); margin: 14px 0; }
-
     .kpi{
       display:grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -192,6 +190,7 @@
     }
   </style>
 </head>
+
 <body>
 <header>
   <div class="bar">
@@ -403,7 +402,6 @@ const ROUNDS = [
       state.s4_recovery_sec = num("s4_recovery_sec");
     }
   },
-
   {
     id: "divergence",
     title: "Round 2 — Divergence Sprint (Raw Range)",
@@ -443,7 +441,6 @@ const ROUNDS = [
       state.r1_unusual = val("r1_unusual");
     }
   },
-
   {
     id: "forced_connection",
     title: "Round 3 — Forced Connection Engine",
@@ -480,7 +477,6 @@ const ROUNDS = [
       state.r2_depth = num("r2_depth");
     }
   },
-
   {
     id: "perspective_shift",
     title: "Round 4 — Perspective Shift Drill",
@@ -518,7 +514,6 @@ const ROUNDS = [
       state.r3_unique = num("r3_unique");
     }
   },
-
   {
     id: "ambiguity",
     title: "Round 5 — Ambiguity Field",
@@ -546,7 +541,6 @@ const ROUNDS = [
       state.r4_urge = num("r4_urge");
     }
   },
-
   {
     id: "complexity",
     title: "Round 6 — Complexity Handling",
@@ -627,6 +621,61 @@ function destroyCharts(){
   if(somaticChartInstance){ somaticChartInstance.destroy(); somaticChartInstance = null; }
 }
 
+/* ---- Chart polish helpers (darker = higher value) ---- */
+function normalizeValues(values){
+  const nums = values.map(v => Number(v) || 0);
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  const span = max - min;
+  if(span <= 0) return nums.map(() => 0.5);
+  return nums.map(v => (v - min) / span);
+}
+
+function blackByValue(values){
+  const t = normalizeValues(values);
+  const lightLow = 62;
+  const lightHigh = 10;
+  return t.map(x => `hsl(0, 0%, ${Math.round(lightLow + (lightHigh - lightLow) * x)}%)`);
+}
+
+function blueByValue(values){
+  const t = normalizeValues(values);
+  const hue = 210;
+  const sat = 78;
+  const lightLow = 72;
+  const lightHigh = 26;
+  return t.map(x => `hsl(${hue}, ${sat}%, ${Math.round(lightLow + (lightHigh - lightLow) * x)}%)`);
+}
+
+function findMaxIndex(values){
+  let maxIdx = 0;
+  for(let i = 1; i < values.length; i++){
+    if((Number(values[i]) || 0) > (Number(values[maxIdx]) || 0)) maxIdx = i;
+  }
+  return maxIdx;
+}
+
+function applyPolish(chart, rampFn){
+  const ds = chart.data.datasets[0];
+  const vals = ds.data.map(v => Number(v) || 0);
+  const colors = rampFn(vals);
+  const maxIdx = findMaxIndex(vals);
+
+  const maxBoost = colors[maxIdx].startsWith("hsl(0, 0%")
+    ? "hsl(0, 0%, 6%)"
+    : "hsl(210, 82%, 22%)";
+
+  ds.backgroundColor = colors;
+  ds.borderColor = colors.map((c, i) => (i === maxIdx ? maxBoost : c));
+  ds.borderWidth = vals.map((_, i) => (i === maxIdx ? 2 : 1));
+  ds.borderRadius = 6;
+  ds.borderSkipped = false;
+  ds.barPercentage = 0.78;
+  ds.categoryPercentage = 0.86;
+  ds.hoverBackgroundColor = colors.map((c, i) => (i === maxIdx ? maxBoost : c));
+  ds.hoverBorderWidth = vals.map((_, i) => (i === maxIdx ? 3 : 2));
+}
+
 function renderCharts(attempt){
   if(typeof Chart === "undefined") return;
 
@@ -654,58 +703,55 @@ function renderCharts(attempt){
     attempt.scores.gap ?? 0
   ];
 
-  /* Somatic FIRST */
+  const baseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 260, easing: "easeOutQuart" },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        displayColors: false,
+        callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed.y}` }
+      }
+    },
+    interaction: { mode: "nearest", intersect: false },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { maxTicksLimit: 5 } },
+      x: { ticks: { autoSkip: false, maxRotation: 25, minRotation: 25 } }
+    }
+  };
+
   somaticChartInstance = new Chart(somaticCanvas, {
     type: "bar",
     data: {
-      labels: [
-        "Somatic Index",
-        "Embodied Expansion",
-        "Range",
-        "Recovery",
-        "Integration Gap"
-      ],
-      datasets: [{
-        label: "Somatic Scores",
-        data: somaticValues,
-        borderWidth: 1
-      }]
+      labels: ["Somatic Index","Embodied Expansion","Range","Recovery","Integration Gap"],
+      datasets: [{ label: "Somatic Scores", data: somaticValues }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: 100 }
-      }
-    }
+    options: baseOptions
   });
 
   creativeChartInstance = new Chart(creativeCanvas, {
     type: "bar",
     data: {
-      labels: [
-        "Creative Index",
-        "Fluency",
-        "Flexibility",
-        "Associative Strength",
-        "Perspective Shift",
-        "Ambiguity Tolerance",
-        "Complexity Handling"
-      ],
-      datasets: [{
-        label: "Creative Scores",
-        data: creativeValues,
-        borderWidth: 1
-      }]
+      labels: ["Creative Index","Fluency","Flexibility","Associative Strength","Perspective Shift","Ambiguity Tolerance","Complexity Handling"],
+      datasets: [{ label: "Creative Scores", data: creativeValues }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: 100 }
-      }
-    }
+    options: baseOptions
   });
+
+  const forcePolish = () => {
+    if(!somaticChartInstance || !creativeChartInstance) return;
+    applyPolish(somaticChartInstance, blackByValue);
+    applyPolish(creativeChartInstance, blueByValue);
+    somaticChartInstance.update();
+    creativeChartInstance.update();
+  };
+
+  forcePolish();
+  requestAnimationFrame(forcePolish);
+  setTimeout(forcePolish, 0);
+  setTimeout(forcePolish, 50);
 }
 
 /* ---- Bulletproof: Next can NEVER be disabled (no loops) ---- */
@@ -1142,6 +1188,18 @@ function cryptoRandomId(){
 }
 
 /* ---- Init ---- */
+function showIntro(){
+  stopTimer();
+  destroyCharts();
+  introCard.style.display = "block";
+  labCard.style.display = "none";
+  resultsCard.style.display = "none";
+  timerPill.textContent = `Timer: 00:00`;
+  progressBar.style.width = "0%";
+  stepLabel.textContent = "Step";
+  modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
+}
+
 showIntro();
 </script>
 </body>
