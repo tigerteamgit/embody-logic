@@ -21,21 +21,39 @@
     if(creativeChart){ creativeChart.destroy(); creativeChart = null; }
   }
 
+  /* ---- Options ---- */
   function buildOptions(){
     return {
       responsive: true,
       maintainAspectRatio: false,
-      animation: false,
+      // ✅ subtle polish: short animation feels nicer, still stable with locked canvas
+      animation: { duration: 260, easing: "easeOutQuart" },
       layout: { padding: 0 },
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: true }
+        tooltip: {
+          enabled: true,
+          displayColors: false,
+          callbacks: {
+            label: (ctx) => `${ctx.label}: ${ctx.parsed.y}`
+          }
+        }
       },
       interaction: { mode: "nearest", intersect: false },
       events: ["mousemove","mouseout","click","touchstart","touchmove"],
       scales: {
-        y: { beginAtZero: true, max: 100, ticks: { maxTicksLimit: 5 } },
-        x: { ticks: { autoSkip: false, maxRotation: 25, minRotation: 25 } }
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { maxTicksLimit: 5 }
+        },
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 25,
+            minRotation: 25
+          }
+        }
       }
     };
   }
@@ -46,33 +64,62 @@
     const min = Math.min(...nums);
     const max = Math.max(...nums);
     const span = max - min;
-    // If all values equal, use mid intensity
     if(span <= 0) return nums.map(() => 0.5);
     return nums.map(v => (v - min) / span);
   }
 
   function blackByValue(values){
-    // low value -> lighter gray; high value -> darker near-black
     const t = normalizeValues(values);
-    const lightLow = 60; // lightest for low scores
-    const lightHigh = 12; // darkest for high scores
-    return t.map(x => {
-      const L = Math.round(lightLow + (lightHigh - lightLow) * x);
-      return `hsl(0, 0%, ${L}%)`;
-    });
+    const lightLow = 62;  // low score -> lighter gray
+    const lightHigh = 10; // high score -> near-black
+    return t.map(x => `hsl(0, 0%, ${Math.round(lightLow + (lightHigh - lightLow) * x)}%)`);
   }
 
   function blueByValue(values){
-    // low value -> lighter blue; high value -> deeper/darker blue
     const t = normalizeValues(values);
     const hue = 210;
-    const sat = 75;
-    const lightLow = 70; // lightest for low scores
-    const lightHigh = 28; // darkest for high scores
-    return t.map(x => {
-      const L = Math.round(lightLow + (lightHigh - lightLow) * x);
-      return `hsl(${hue}, ${sat}%, ${L}%)`;
-    });
+    const sat = 78;
+    const lightLow = 72;  // low score -> lighter blue
+    const lightHigh = 26; // high score -> deeper blue
+    return t.map(x => `hsl(${hue}, ${sat}%, ${Math.round(lightLow + (lightHigh - lightLow) * x)}%)`);
+  }
+
+  /* ---- Next-level polish: highlight max bar + subtle edge + "shadow" illusion ---- */
+  function applyPolish(chart, makeColorsFn){
+    const ds = chart.data.datasets[0];
+    const vals = ds.data.map(v => Number(v) || 0);
+
+    // Per-bar colors (family ramp)
+    const base = makeColorsFn(vals);
+
+    // Find max bar index (first max if ties)
+    let maxIdx = 0;
+    for(let i = 1; i < vals.length; i++){
+      if(vals[i] > vals[maxIdx]) maxIdx = i;
+    }
+
+    // Slightly boost max bar contrast
+    const isBlackFamily = base[0].startsWith("hsl(0, 0%");
+    const boost = isBlackFamily ? "hsl(0, 0%, 6%)" : "hsl(210, 82%, 22%)";
+
+    // Border: a touch darker than fill + stronger border on max bar
+    const border = base.map((c, i) => (i === maxIdx ? boost : c));
+    ds.backgroundColor = base;
+    ds.borderColor = border;
+    ds.borderWidth = vals.map((_, i) => (i === maxIdx ? 2 : 1));
+
+    // Rounded corners + tighter look
+    ds.borderRadius = 6;
+    ds.borderSkipped = false;
+
+    // Faux shadow via hover color + thicker bar for max
+    // (Chart.js bar thickness is per-dataset, so we do max emphasis via border + hover)
+    ds.hoverBackgroundColor = base.map((c, i) => (i === maxIdx ? boost : c));
+    ds.hoverBorderWidth = vals.map((_, i) => (i === maxIdx ? 3 : 2));
+
+    // Subtle bar width polish
+    ds.barPercentage = 0.78;
+    ds.categoryPercentage = 0.86;
   }
 
   function renderCharts(){
@@ -97,23 +144,16 @@
 
     /* ---- SOMATIC DATA (first) ---- */
     const somaticValues = [18, 14, 0, 5, 9];
-    const somaticColors = blackByValue(somaticValues);
-
     const somaticData = {
       labels: ['Somatic Index', 'Embodied Expansion', 'Range', 'Recovery', 'Integration Gap'],
       datasets: [{
         label: 'Somatic Scores',
-        data: somaticValues,
-        backgroundColor: somaticColors,
-        borderColor: somaticColors,
-        borderWidth: 1
+        data: somaticValues
       }]
     };
 
     /* ---- CREATIVE DATA (second) ---- */
     const creativeValues = [10, 5, 5, 0, 0, 0, 0];
-    const creativeColors = blueByValue(creativeValues);
-
     const creativeData = {
       labels: [
         "Creative Index",
@@ -126,10 +166,7 @@
       ],
       datasets: [{
         label: "Creative Scores",
-        data: creativeValues,
-        backgroundColor: creativeColors,
-        borderColor: creativeColors,
-        borderWidth: 1.5
+        data: creativeValues
       }]
     };
 
@@ -137,6 +174,12 @@
 
     somaticChart = new Chart(somaticCanvas, { type: "bar", data: somaticData, options });
     creativeChart = new Chart(creativeCanvas, { type: "bar", data: creativeData, options });
+
+    // ✅ Apply color ramps + max-bar emphasis AFTER init (prevents "all blue" defaults)
+    applyPolish(somaticChart, blackByValue);
+    applyPolish(creativeChart, blueByValue);
+    somaticChart.update();
+    creativeChart.update();
 
     requestAnimationFrame(() => {
       lockCanvasHeight(somaticCanvas, CHART_H);
