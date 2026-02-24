@@ -301,6 +301,11 @@ function fmtTime(sec){
   const s = sec%60;
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
+/* ---- Safe DOM setter ---- */
+function setText(id, v){
+  const el = document.getElementById(id);
+  if(el) el.textContent = (v ?? "—");
+}
 
 /* ---- Round definitions (Somatic first) ---- */
 const ROUNDS = [
