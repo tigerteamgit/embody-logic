@@ -106,7 +106,6 @@
 
     .hr{ height:1px; background: var(--line); margin: 14px 0; }
 
-    /* ---- KPI (legacy) ---- */
     .kpi{
       display:grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -121,28 +120,6 @@
     .kpi .box .n{ font-size: 24px; font-weight: 800; }
     .kpi .box .t{ font-size: 12px; color: var(--muted); }
 
-    /* ---- NEW: Results totals (2 cards only) ---- */
-    .totals{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-      margin-bottom: 12px;
-    }
-    .total-box{
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-    }
-    .total-box .n{ font-size: 28px; font-weight: 900; }
-    .total-box .t{ font-size: 12px; color: var(--muted); }
-
-    /* ---- NEW: Hide legacy KPI blocks in Results ---- */
-    #resultsCard .kpi{
-      display:none !important;
-    }
-
     .notice{
       background: #fff7e6;
       border: 1px solid #ffe0a8;
@@ -153,6 +130,7 @@
     .good{ color: var(--good); font-weight:700; }
     .warn{ color: var(--warn); font-weight:700; }
     .bad{ color: var(--bad); font-weight:700; }
+
     .timer{
       font-variant-numeric: tabular-nums;
       font-size: 13px;
@@ -171,6 +149,26 @@
       transition: width .2s ease;
     }
 
+    /* ---- Results: ONLY two totals cards (visible) ---- */
+    .totals{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      margin-bottom: 10px;
+    }
+    .total-box{
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .total-box .n{ font-size: 28px; font-weight: 900; }
+    .total-box .t{ font-size: 12px; color: var(--muted); }
+
+    /* Hide all legacy KPI grids in Results card, but keep them in DOM for JS stability */
+    #resultsCard .kpi{ display:none !important; }
+
     /* ---- Charts ---- */
     .chart-wrap{
       margin-top: 14px;
@@ -182,7 +180,7 @@
     .chart-wrap h3{ margin: 0 0 10px; }
     .chart-canvas{
       width: 100%;
-      height: 260px;
+      height: 260px; /* chart height */
       display:block;
     }
 
@@ -267,7 +265,7 @@
     <h2>Results</h2>
     <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
 
-    <!-- NEW: only two totals visible (Somatic first, then Creative) -->
+    <!-- Only two totals (Somatic first, Creative second) -->
     <div class="totals">
       <div class="total-box">
         <div class="n" id="seiTotalN">—</div>
@@ -279,7 +277,7 @@
       </div>
     </div>
 
-    <!-- Legacy KPI grids kept for JS safety, but hidden by CSS -->
+    <!-- Legacy KPI blocks kept (hidden via CSS) -->
     <div class="kpi" style="margin-top:12px;">
       <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
       <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
@@ -790,11 +788,11 @@ function showResults(attempt){
   labCard.style.display = "none";
   resultsCard.style.display = "block";
 
-  /* NEW: two totals visible */
+  /* Visible totals (2 cards) */
   document.getElementById("seiTotalN").textContent = attempt.scores.sei ?? "—";
   document.getElementById("ceiTotalN").textContent = attempt.scores.cei ?? "—";
 
-  /* Legacy updates (safe even though hidden) */
+  /* Legacy KPI values (kept for future UI; hidden now) */
   document.getElementById("ceiN").textContent = attempt.scores.cei ?? "—";
   document.getElementById("fluencyN").textContent = attempt.scores.fluency ?? "—";
   document.getElementById("flexN").textContent = attempt.scores.flexibility ?? "—";
@@ -830,9 +828,6 @@ function startLab(){
 
   showLab();
   renderRound();
-}
-
-/* --- NOTE: rest of your file continues unchanged --- */
 }
 function resetAttempt(clearName){
   stopTimer();
