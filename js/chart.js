@@ -7,11 +7,17 @@
 
   function lockCanvasHeight(canvas, px){
     if(!canvas) return;
-    // CSS size
+
+    // CSS size (layout)
+    canvas.style.display = "block";
+    canvas.style.width = "100%";
     canvas.style.height = px + "px";
     canvas.style.maxHeight = px + "px";
-    canvas.style.width = "100%";
-    // Internal drawing buffer (this matters)
+
+    // Canvas drawing buffer (prevents hover/tooltip resize jitter)
+    // IMPORTANT: also set width buffer from current layout width
+    const w = Math.max(1, Math.round(canvas.getBoundingClientRect().width || canvas.parentElement?.getBoundingClientRect().width || 600));
+    canvas.width = w;
     canvas.height = px;
   }
 
@@ -27,8 +33,15 @@
       animation: false,
       layout: { padding: 0 },
       plugins: {
-        legend: { display: true }
+        legend: { display: false },   // ✅ remove legends
+        tooltip: { enabled: true }
       },
+      interaction: {
+        mode: "nearest",
+        intersect: false
+      },
+      // Extra belt + suspenders against hover/layout jitter
+      events: ["mousemove","mouseout","click","touchstart","touchmove"],
       scales: {
         y: {
           beginAtZero: true,
@@ -61,11 +74,11 @@
       return;
     }
 
+    destroyCharts();
+
     // Force heights BEFORE creating charts
     lockCanvasHeight(somaticCanvas, CHART_H);
     lockCanvasHeight(creativeCanvas, CHART_H);
-
-    destroyCharts();
 
     /* ---- SOMATIC DATA (first) ---- */
     const somaticData = {
@@ -79,9 +92,8 @@
       datasets: [{
         label: "Somatic Scores",
         data: [19, 15, 0, 5, 9],
-        borderWidth: 1,
         backgroundColor: "rgba(20, 20, 20, 0.85)",   // black fill
-        borderColor: "rgba(0, 0, 0, 1)",              // solid black"
+        borderColor: "rgba(0, 0, 0, 1)",             // solid black
         borderWidth: 1.5,
         hoverBackgroundColor: "rgba(40, 40, 40, 0.95)"
       }]
@@ -101,9 +113,8 @@
       datasets: [{
         label: "Creative Scores",
         data: [10, 5, 5, 0, 0, 0, 0],
-        borderWidth: 1,
-        backgroundColor: "rgba(124, 58, 237, 0.85)",   // purple fill
-        borderColor: "rgba(91, 33, 182, 1)",            // darker purple
+        backgroundColor: "rgba(124, 58, 237, 0.85)", // purple fill
+        borderColor: "rgba(91, 33, 182, 1)",         // darker purple
         borderWidth: 1.5,
         hoverBackgroundColor: "rgba(139, 92, 246, 0.95)"
       }]
@@ -115,14 +126,23 @@
     somaticChart = new Chart(somaticCanvas, { type: "bar", data: somaticData, options });
     creativeChart = new Chart(creativeCanvas, { type: "bar", data: creativeData, options });
 
-    // Re-lock after Chart.js computes sizes (prevents it from re-stretching)
+    // Re-lock after Chart.js computes sizes (prevents it from re-stretching on hover)
     requestAnimationFrame(() => {
       lockCanvasHeight(somaticCanvas, CHART_H);
       lockCanvasHeight(creativeCanvas, CHART_H);
+      somaticChart.resize();
+      creativeChart.resize();
     });
+
+    // Keep locked on window resize too
+    window.addEventListener("resize", () => {
+      lockCanvasHeight(somaticCanvas, CHART_H);
+      lockCanvasHeight(creativeCanvas, CHART_H);
+      if(somaticChart) somaticChart.resize();
+      if(creativeChart) creativeChart.resize();
+    }, { passive: true });
   }
 
-  // Wait until canvases exist
   document.addEventListener("DOMContentLoaded", renderCharts);
 })();
 </script>
