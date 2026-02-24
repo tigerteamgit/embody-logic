@@ -337,3 +337,17 @@ th{ text-align:left; font-size:13px; color:#333; }
   0%,100%{ opacity:.35; transform: scale(1.0); }
   50%{ opacity:.65; transform: scale(1.01); }
 }
+
+/* ---- Charts Layout ---- */
+.charts-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (max-width: 900px){
+  .charts-row{
+    grid-template-columns: 1fr;
+  }
+}
