@@ -338,16 +338,21 @@ th{ text-align:left; font-size:13px; color:#333; }
   50%{ opacity:.65; transform: scale(1.01); }
 }
 
-/* ---- Charts Layout ---- */
-.charts-row{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 10px;
+/* ---- Charts Layout (force side-by-side) ---- */
+#resultsCard .charts-row{
+  display:flex !important;
+  gap:12px;
+  align-items:stretch;
 }
 
+#resultsCard .charts-row > .chart-wrap{
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* stack on mobile */
 @media (max-width: 900px){
-  .charts-row{
-    grid-template-columns: 1fr;
+  #resultsCard .charts-row{
+    flex-direction: column;
   }
 }
