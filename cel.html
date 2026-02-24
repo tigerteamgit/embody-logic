@@ -109,11 +109,6 @@
       color:#111;
       border:1px solid rgba(0,0,0,.10);
     }
-    .btn-danger{
-      background: #fff;
-      color:#111;
-      border:1px solid #d33;
-    }
     .btn-outline{
       background: rgba(255,255,255,.92);
       color:#111;
@@ -129,9 +124,6 @@
       border-radius: 12px;
       color:#5a3d00;
     }
-    .good{ color: var(--good); font-weight:800; }
-    .warn{ color: var(--warn); font-weight:800; }
-    .bad{ color: var(--bad); font-weight:800; }
     .timer{
       font-variant-numeric: tabular-nums;
       font-size: 13px;
@@ -150,7 +142,7 @@
       transition: width .2s ease;
     }
 
-    /* ---- Totals (only two) ---- */
+    /* ---- Totals (visible) ---- */
     .totals{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -166,6 +158,24 @@
     .total-box .n{ font-size: 28px; font-weight: 900; }
     .total-box .t{ font-size: 12px; color: var(--muted); }
 
+    /* ---- Legacy KPI block (hidden) ---- */
+    .hidden{
+      display:none !important;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap:10px;
+    }
+    .kpi .box{
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+    .kpi .box .n{ font-size: 24px; font-weight: 800; }
+    .kpi .box .t{ font-size: 12px; color: var(--muted); }
+
     /* ---- Chart ---- */
     .chart-wrap{
       margin-top: 14px;
@@ -177,14 +187,14 @@
     .chart-wrap h3{ margin: 0 0 10px; }
     .chart-canvas{
       width: 100%;
-      height: 280px;
+      height: 360px; /* taller because more bars */
       display:block;
     }
 
-    /* ---- Responsive ---- */
     @media (max-width: 900px){
       .totals{ grid-template-columns: 1fr; }
-      .chart-canvas{ height: 320px; }
+      .chart-canvas{ height: 420px; }
+      .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
   </style>
 </head>
@@ -261,7 +271,7 @@
     <h2>Results</h2>
     <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
 
-    <!-- ---- Only keep two totals ---- -->
+    <!-- Visible totals -->
     <div class="totals">
       <div class="total-box">
         <div class="n" id="ceiTotalN">—</div>
@@ -273,10 +283,35 @@
       </div>
     </div>
 
-    <!-- ---- One Chart (two colors) ---- -->
+    <!-- Hidden legacy KPI block (kept for future UI if you want) -->
+    <div class="hidden" id="legacyKpis">
+      <div class="kpi" style="margin-top:12px;">
+        <div class="box"><div class="n" id="ceiN">—</div><div class="t">CEI</div></div>
+        <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
+        <div class="box"><div class="n" id="flexN">—</div><div class="t">Flexibility</div></div>
+        <div class="box"><div class="n" id="assocN">—</div><div class="t">Associative</div></div>
+        <div class="box"><div class="n" id="shiftN">—</div><div class="t">Perspective</div></div>
+      </div>
+      <div class="kpi" style="margin-top:10px;">
+        <div class="box"><div class="n" id="ambN">—</div><div class="t">Ambiguity</div></div>
+        <div class="box"><div class="n" id="complexN">—</div><div class="t">Complexity</div></div>
+        <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas</div></div>
+        <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories</div></div>
+        <div class="box"><div class="n" id="timeN">—</div><div class="t">Time</div></div>
+      </div>
+      <div class="kpi" style="margin-top:10px;">
+        <div class="box"><div class="n" id="seiN">—</div><div class="t">SEI</div></div>
+        <div class="box"><div class="n" id="eesN">—</div><div class="t">EES</div></div>
+        <div class="box"><div class="n" id="gapN">—</div><div class="t">Gap</div></div>
+        <div class="box"><div class="n" id="rangeN">—</div><div class="t">Range</div></div>
+        <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery</div></div>
+      </div>
+    </div>
+
+    <!-- One chart with ALL categories -->
     <div class="chart-wrap">
-      <h3>Totals</h3>
-      <canvas id="totalsChart" class="chart-canvas"></canvas>
+      <h3>Profiles (All Categories)</h3>
+      <canvas id="profilesChart" class="chart-canvas"></canvas>
     </div>
 
     <div class="hr"></div>
@@ -289,7 +324,6 @@
   </div>
 </main>
 
-<!-- ---- Chart.js (load once) ---- -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -313,13 +347,12 @@ function fmtTime(sec){
   const s = sec%60;
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
-/* ---- Safe DOM setter ---- */
 function setText(id, v){
   const el = document.getElementById(id);
   if(el) el.textContent = (v ?? "—");
 }
 
-/* ---- Round definitions ---- */
+/* ---- Round definitions (unchanged) ---- */
 const ROUNDS = [
   {
     id: "somatic",
@@ -369,7 +402,6 @@ const ROUNDS = [
       state.s4_recovery_sec = num("s4_recovery_sec");
     }
   },
-
   {
     id: "divergence",
     title: "Round 2 — Divergence Sprint (Raw Range)",
@@ -409,7 +441,6 @@ const ROUNDS = [
       state.r1_unusual = val("r1_unusual");
     }
   },
-
   {
     id: "forced_connection",
     title: "Round 3 — Forced Connection Engine",
@@ -446,7 +477,6 @@ const ROUNDS = [
       state.r2_depth = num("r2_depth");
     }
   },
-
   {
     id: "perspective_shift",
     title: "Round 4 — Perspective Shift Drill",
@@ -484,7 +514,6 @@ const ROUNDS = [
       state.r3_unique = num("r3_unique");
     }
   },
-
   {
     id: "ambiguity",
     title: "Round 5 — Ambiguity Field",
@@ -512,7 +541,6 @@ const ROUNDS = [
       state.r4_urge = num("r4_urge");
     }
   },
-
   {
     id: "complexity",
     title: "Round 6 — Complexity Handling",
@@ -584,45 +612,89 @@ const stepLabel = document.getElementById("stepLabel");
 const modeLabel = document.getElementById("modeLabel");
 const nextBtn = document.getElementById("nextBtn");
 
-/* ---- Charts State ---- */
-let totalsChartInstance = null;
+/* ---- Chart state ---- */
+let profilesChartInstance = null;
 
 function destroyCharts(){
-  if(totalsChartInstance){
-    totalsChartInstance.destroy();
-    totalsChartInstance = null;
+  if(profilesChartInstance){
+    profilesChartInstance.destroy();
+    profilesChartInstance = null;
   }
 }
 
 function renderCharts(attempt){
   if(typeof Chart === "undefined") return;
-
-  const canvas = document.getElementById("totalsChart");
+  const canvas = document.getElementById("profilesChart");
   if(!canvas) return;
 
   destroyCharts();
 
-  const creative = attempt.scores.cei ?? 0;
-  const somatic = attempt.scores.sei ?? 0;
+  // One label list that includes ALL categories
+  const labels = [
+    // Creative
+    "CEI",
+    "Fluency",
+    "Flexibility",
+    "Associative Strength",
+    "Perspective Shift",
+    "Ambiguity Tolerance",
+    "Complexity Handling",
+    // Somatic
+    "SEI",
+    "Somatic Range",
+    "Somatic Coordination",
+    "Somatic Balance",
+    "Somatic Recovery",
+    "Embodied Expansion (EES)",
+    "Integration Gap"
+  ];
 
-  totalsChartInstance = new Chart(canvas, {
+  // Creative dataset should only fill creative slots; somatic slots are null (Chart.js won't render bars for null)
+  const creativeData = [
+    attempt.scores.cei ?? 0,
+    attempt.scores.fluency ?? 0,
+    attempt.scores.flexibility ?? 0,
+    attempt.scores.associative ?? 0,
+    attempt.scores.perspective ?? 0,
+    attempt.scores.ambiguity ?? 0,
+    attempt.scores.complexity ?? 0,
+    null, null, null, null, null, null, null
+  ];
+
+  // Somatic dataset fills somatic slots; creative slots are null
+  const somaticData = [
+    null, null, null, null, null, null, null,
+    attempt.scores.sei ?? 0,
+    attempt.scores.somatic_range ?? 0,
+    attempt.scores.somatic_coordination ?? 0,
+    attempt.scores.somatic_balance ?? 0,
+    attempt.scores.somatic_recovery ?? 0,
+    attempt.scores.ees ?? 0,
+    attempt.scores.gap ?? 0
+  ];
+
+  profilesChartInstance = new Chart(canvas, {
     type: "bar",
     data: {
-      labels: ["Creative (CEI)", "Somatic (SEI)"],
-      datasets: [{
-        label: "Totals",
-        data: [creative, somatic],
-        backgroundColor: [
-          "rgba(99, 179, 237, 0.55)",  /* Creative */
-          "rgba(72, 187, 120, 0.55)"   /* Somatic */
-        ],
-        borderColor: [
-          "rgba(99, 179, 237, 1)",
-          "rgba(72, 187, 120, 1)"
-        ],
-        borderWidth: 1,
-        borderRadius: 8
-      }]
+      labels,
+      datasets: [
+        {
+          label: "Creative",
+          data: creativeData,
+          backgroundColor: "rgba(99, 179, 237, 0.55)",
+          borderColor: "rgba(99, 179, 237, 1)",
+          borderWidth: 1,
+          borderRadius: 8
+        },
+        {
+          label: "Somatic",
+          data: somaticData,
+          backgroundColor: "rgba(72, 187, 120, 0.55)",
+          borderColor: "rgba(72, 187, 120, 1)",
+          borderWidth: 1,
+          borderRadius: 8
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -634,14 +706,13 @@ function renderCharts(attempt){
   });
 }
 
-/* ---- Bulletproof: Next can NEVER be disabled (no loops) ---- */
+/* ---- Bulletproof: Next can NEVER be disabled ---- */
 function unlockNext(){
   if(!nextBtn) return;
   nextBtn.disabled = false;
   nextBtn.removeAttribute("disabled");
 }
 unlockNext();
-
 new MutationObserver(() => unlockNext())
   .observe(nextBtn, { attributes: true, attributeFilter: ["disabled"] });
 
@@ -664,15 +735,13 @@ function setProgress(){
   modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
 }
 
-/* ---- Timer (no auto-advance) ---- */
+/* ---- Timer ---- */
 function startTimer(seconds){
   stopTimer();
-
   if(!seconds || seconds <= 0){
     timerPill.textContent = `Timer: 00:00`;
     return;
   }
-
   state.timer.running = true;
   const now = Date.now();
   state.timer.endAt = now + seconds*1000;
@@ -681,7 +750,6 @@ function startTimer(seconds){
     const leftMs = state.timer.endAt - Date.now();
     const left = Math.max(0, Math.ceil(leftMs/1000));
     timerPill.textContent = `Timer: ${fmtTime(left)}`;
-
     if(left <= 0){
       stopTimer();
       timerPill.textContent = `Timer: 00:00`;
@@ -718,12 +786,28 @@ function showResults(attempt){
   labCard.style.display = "none";
   resultsCard.style.display = "block";
 
+  // Visible totals
   setText("ceiTotalN", attempt.scores.cei);
   setText("seiTotalN", attempt.scores.sei);
 
-  renderComparison(attempt);
+  // Hidden legacy totals (kept but not shown)
+  setText("ceiN", attempt.scores.cei);
+  setText("fluencyN", attempt.scores.fluency);
+  setText("flexN", attempt.scores.flexibility);
+  setText("assocN", attempt.scores.associative);
+  setText("shiftN", attempt.scores.perspective);
+  setText("ambN", attempt.scores.ambiguity);
+  setText("complexN", attempt.scores.complexity);
+  setText("totalIdeasN", attempt.scores.ideaCount);
+  setText("catsN", attempt.scores.categoryCount);
+  setText("timeN", fmtTime(attempt.meta.activeSeconds ?? 0));
+  setText("seiN", attempt.scores.sei);
+  setText("eesN", attempt.scores.ees);
+  setText("gapN", attempt.scores.gap);
+  setText("rangeN", attempt.scores.somatic_range);
+  setText("recoveryN", attempt.scores.somatic_recovery);
 
-  /* ---- Render chart ONLY on Results screen ---- */
+  renderComparison(attempt);
   requestAnimationFrame(() => renderCharts(attempt));
 }
 
@@ -765,7 +849,6 @@ function nextRound(){
   if(state.roundIndex >= 0 && state.roundIndex < ROUNDS.length){
     ROUNDS[state.roundIndex].collect(state);
   }
-
   if(state.roundIndex < ROUNDS.length - 1){
     state.roundIndex += 1;
     renderRound();
@@ -778,14 +861,11 @@ function nextRound(){
 function renderRound(){
   stopTimer();
   setProgress();
-
   const round = ROUNDS[state.roundIndex];
   roundTitle.textContent = round.title;
   roundDesc.textContent = round.desc;
   roundBody.innerHTML = round.render(state);
-
   unlockNext();
-
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
   startTimer(round.timedSeconds || 0);
 }
@@ -891,7 +971,6 @@ function finishAndScore(){
   const cei = fluency + flexibility + associative + perspective + ambComplex;
 
   const somatic = scoreSomaticIndex(state.s1_fold, state.s2_reps, state.s3_balance_sec, state.s4_recovery_sec);
-
   const ees = Math.round((cei + somatic.sei) / 2);
   const gap = Math.abs(cei - somatic.sei);
 
@@ -973,39 +1052,10 @@ function renderComparison(current){
   const delta = post.scores.cei - baseline.scores.cei;
   const klass = delta >= 8 ? "good" : (delta >= 2 ? "warn" : (delta >= 0 ? "warn" : "bad"));
 
-  const rows = [
-    ["CEI", baseline.scores.cei, post.scores.cei],
-    ["SEI", baseline.scores.sei, post.scores.sei],
-    ["EES", baseline.scores.ees, post.scores.ees],
-    ["Gap", baseline.scores.gap, post.scores.gap],
-  ];
-
   el.innerHTML = `
     <div class="card" style="background:#fff; border:1px solid var(--line); box-shadow:none;">
       <h3>Baseline vs Post (on this device)</h3>
       <p class="muted">Delta (CEI): <span class="${klass}">${delta >= 0 ? "+" : ""}${delta}</span></p>
-      <div style="overflow:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:14px;">
-          <thead>
-            <tr>
-              <th style="text-align:left; padding:10px; border-bottom:1px solid var(--line);">Metric</th>
-              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Baseline</th>
-              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Post</th>
-              <th style="text-align:right; padding:10px; border-bottom:1px solid var(--line);">Δ</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(([k,b,p]) => `
-              <tr>
-                <td style="padding:10px; border-bottom:1px solid var(--line);">${k}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${b ?? "—"}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${p ?? "—"}</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid var(--line);">${Number.isFinite(p-b) ? ((p-b)>=0?"+":"") + (p-b) : "—"}</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
     </div>
   `;
 }
