@@ -20,8 +20,8 @@
   --max: 860px;
 
   /* ---- Chart sizing ---- */
-  --chart-h: 150px;        /* default chart height */
-  --chart-h-mobile: 150px; /* mobile chart height */
+  --chart-h: 500px;        /* default chart height */
+  --chart-h-mobile: 500px; /* mobile chart height */
 }
 
 *{ box-sizing:border-box; }
