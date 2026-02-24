@@ -340,18 +340,17 @@ th{ text-align:left; font-size:13px; color:#333; }
 
 /* ---- Charts Layout (force side-by-side) ---- */
 #resultsCard .charts-row{
-  display:flex !important;
-  gap:12px;
-  align-items:stretch;
+  display: flex !important;
+  gap: 14px;
+  align-items: stretch;
+  flex-wrap: nowrap;
 }
 
-
-#resultsCard .charts-row > .chart-wrap{
+#resultsCard .charts-row .chart-wrap{
   flex: 1 1 0;
   min-width: 0;
-  width: 100%;
+  margin: 0;           /* prevents vertical spacing from acting like stacked blocks */
 }
-
 
 /* stack on mobile */
 @media (max-width: 900px){
