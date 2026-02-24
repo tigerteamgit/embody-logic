@@ -7,15 +7,10 @@
 
   function lockCanvasHeight(canvas, px){
     if(!canvas) return;
-
-    // CSS size (layout)
     canvas.style.display = "block";
     canvas.style.width = "100%";
     canvas.style.height = px + "px";
     canvas.style.maxHeight = px + "px";
-
-    // Canvas drawing buffer (prevents hover/tooltip resize jitter)
-    // IMPORTANT: also set width buffer from current layout width
     const w = Math.max(1, Math.round(canvas.getBoundingClientRect().width || canvas.parentElement?.getBoundingClientRect().width || 600));
     canvas.width = w;
     canvas.height = px;
@@ -29,34 +24,55 @@
   function buildOptions(){
     return {
       responsive: true,
-      maintainAspectRatio: false, // ✅ critical to stop stretching
+      maintainAspectRatio: false,
       animation: false,
       layout: { padding: 0 },
       plugins: {
-        legend: { display: false },   // ✅ remove legends
+        legend: { display: false },
         tooltip: { enabled: true }
       },
-      interaction: {
-        mode: "nearest",
-        intersect: false
-      },
-      // Extra belt + suspenders against hover/layout jitter
+      interaction: { mode: "nearest", intersect: false },
       events: ["mousemove","mouseout","click","touchstart","touchmove"],
       scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          ticks: { maxTicksLimit: 5 }
-        },
-        x: {
-          ticks: {
-            autoSkip: false,
-            maxRotation: 25,
-            minRotation: 25
-          }
-        }
+        y: { beginAtZero: true, max: 100, ticks: { maxTicksLimit: 5 } },
+        x: { ticks: { autoSkip: false, maxRotation: 25, minRotation: 25 } }
       }
     };
+  }
+
+  /* ---- Color helpers (darker = higher value) ---- */
+  function normalizeValues(values){
+    const nums = values.map(v => Number(v) || 0);
+    const min = Math.min(...nums);
+    const max = Math.max(...nums);
+    const span = max - min;
+    // If all values equal, use mid intensity
+    if(span <= 0) return nums.map(() => 0.5);
+    return nums.map(v => (v - min) / span);
+  }
+
+  function blackByValue(values){
+    // low value -> lighter gray; high value -> darker near-black
+    const t = normalizeValues(values);
+    const lightLow = 60; // lightest for low scores
+    const lightHigh = 12; // darkest for high scores
+    return t.map(x => {
+      const L = Math.round(lightLow + (lightHigh - lightLow) * x);
+      return `hsl(0, 0%, ${L}%)`;
+    });
+  }
+
+  function blueByValue(values){
+    // low value -> lighter blue; high value -> deeper/darker blue
+    const t = normalizeValues(values);
+    const hue = 210;
+    const sat = 75;
+    const lightLow = 70; // lightest for low scores
+    const lightHigh = 28; // darkest for high scores
+    return t.map(x => {
+      const L = Math.round(lightLow + (lightHigh - lightLow) * x);
+      return `hsl(${hue}, ${sat}%, ${L}%)`;
+    });
   }
 
   function renderCharts(){
@@ -76,25 +92,28 @@
 
     destroyCharts();
 
-    // Force heights BEFORE creating charts
     lockCanvasHeight(somaticCanvas, CHART_H);
     lockCanvasHeight(creativeCanvas, CHART_H);
 
     /* ---- SOMATIC DATA (first) ---- */
+    const somaticValues = [18, 14, 0, 5, 9];
+    const somaticColors = blackByValue(somaticValues);
+
     const somaticData = {
       labels: ['Somatic Index', 'Embodied Expansion', 'Range', 'Recovery', 'Integration Gap'],
-      datasets: [
-      {
+      datasets: [{
         label: 'Somatic Scores',
-        data: [18, 14, 0, 5, 9],
-        backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1a535c', '#ff9f1c'],
-        borderColor:     ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1a535c', '#ff9f1c'],
-        borderWidth: 1,
-      },
-    ],
-   };
+        data: somaticValues,
+        backgroundColor: somaticColors,
+        borderColor: somaticColors,
+        borderWidth: 1
+      }]
+    };
 
     /* ---- CREATIVE DATA (second) ---- */
+    const creativeValues = [10, 5, 5, 0, 0, 0, 0];
+    const creativeColors = blueByValue(creativeValues);
+
     const creativeData = {
       labels: [
         "Creative Index",
@@ -107,21 +126,18 @@
       ],
       datasets: [{
         label: "Creative Scores",
-        data: [10, 5, 5, 0, 0, 0, 0],
-        backgroundColor: "rgba(124, 58, 237, 0.85)", // purple fill
-        borderColor: "rgba(91, 33, 182, 1)",         // darker purple
-        borderWidth: 1.5,
-        hoverBackgroundColor: "rgba(139, 92, 246, 0.95)"
+        data: creativeValues,
+        backgroundColor: creativeColors,
+        borderColor: creativeColors,
+        borderWidth: 1.5
       }]
     };
 
     const options = buildOptions();
 
-    /* ---- Render order: SOMATIC → CREATIVE ---- */
     somaticChart = new Chart(somaticCanvas, { type: "bar", data: somaticData, options });
     creativeChart = new Chart(creativeCanvas, { type: "bar", data: creativeData, options });
 
-    // Re-lock after Chart.js computes sizes (prevents it from re-stretching on hover)
     requestAnimationFrame(() => {
       lockCanvasHeight(somaticCanvas, CHART_H);
       lockCanvasHeight(creativeCanvas, CHART_H);
@@ -129,7 +145,6 @@
       creativeChart.resize();
     });
 
-    // Keep locked on window resize too
     window.addEventListener("resize", () => {
       lockCanvasHeight(somaticCanvas, CHART_H);
       lockCanvasHeight(creativeCanvas, CHART_H);
