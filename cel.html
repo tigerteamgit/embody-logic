@@ -86,38 +86,42 @@
       outline:none;
     }
     textarea{ min-height: 120px; resize: vertical; }
+
+    /* ---- Buttons (smaller, bold, black text) ---- */
     .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
     button{
-      border:0;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 650;
+      border:1px solid rgba(0,0,0,.16);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight: 800;
+      font-size: 13px;
       cursor:pointer;
+      color:#111;
+      background:#fff;
     }
-    .btn-primary{ background: #111; color:#fff; }
-    .btn-soft{ background: var(--soft); color:#111; }
-    .btn-danger{ background: #d33; color:#fff; }
+    .btn-primary{
+      background:#fff;
+      color:#111;
+      border:1px solid #111;
+    }
+    .btn-soft{
+      background: var(--soft);
+      color:#111;
+      border:1px solid rgba(0,0,0,.10);
+    }
+    .btn-danger{
+      background: #fff;
+      color:#111;
+      border:1px solid #d33;
+    }
     .btn-outline{
-      background: transparent;
-      border:1px solid rgba(255,255,255,.22);
-      color:#fff;
+      background: rgba(255,255,255,.92);
+      color:#111;
+      border:1px solid rgba(255,255,255,.35);
     }
     button:disabled{ opacity:.5; cursor:not-allowed; }
 
     .hr{ height:1px; background: var(--line); margin: 14px 0; }
-    .kpi{
-      display:grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap:10px;
-    }
-    .kpi .box{
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      background: #fff;
-    }
-    .kpi .box .n{ font-size: 24px; font-weight: 800; }
-    .kpi .box .t{ font-size: 12px; color: var(--muted); }
     .notice{
       background: #fff7e6;
       border: 1px solid #ffe0a8;
@@ -125,9 +129,9 @@
       border-radius: 12px;
       color:#5a3d00;
     }
-    .good{ color: var(--good); font-weight:700; }
-    .warn{ color: var(--warn); font-weight:700; }
-    .bad{ color: var(--bad); font-weight:700; }
+    .good{ color: var(--good); font-weight:800; }
+    .warn{ color: var(--warn); font-weight:800; }
+    .bad{ color: var(--bad); font-weight:800; }
     .timer{
       font-variant-numeric: tabular-nums;
       font-size: 13px;
@@ -146,7 +150,23 @@
       transition: width .2s ease;
     }
 
-    /* ---- Charts ---- */
+    /* ---- Totals (only two) ---- */
+    .totals{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .total-box{
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .total-box .n{ font-size: 28px; font-weight: 900; }
+    .total-box .t{ font-size: 12px; color: var(--muted); }
+
+    /* ---- Chart ---- */
     .chart-wrap{
       margin-top: 14px;
       padding: 14px;
@@ -157,14 +177,14 @@
     .chart-wrap h3{ margin: 0 0 10px; }
     .chart-canvas{
       width: 100%;
-      height: 260px; /* chart height */
+      height: 280px;
       display:block;
     }
 
-    /* ---- Responsive KPI ---- */
+    /* ---- Responsive ---- */
     @media (max-width: 900px){
-      .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .chart-canvas{ height: 280px; }
+      .totals{ grid-template-columns: 1fr; }
+      .chart-canvas{ height: 320px; }
     }
   </style>
 </head>
@@ -243,38 +263,30 @@
 
     <!-- ---- Only keep two totals ---- -->
     <div class="totals">
-    <div class="total-box">
-      <div class="n" id="ceiTotalN">—</div>
-      <div class="t">Creative Expansion Index (0–100)</div>
+      <div class="total-box">
+        <div class="n" id="ceiTotalN">—</div>
+        <div class="t">Creative Expansion Index (0–100)</div>
+      </div>
+      <div class="total-box">
+        <div class="n" id="seiTotalN">—</div>
+        <div class="t">Somatic Expansion Index (0–100)</div>
+      </div>
     </div>
 
-    <div class="total-box">
-      <div class="n" id="seiTotalN">—</div>
-      <div class="t">Somatic Expansion Index (0–100)</div>
-    </div>
-  </div>
-
-  <!-- ---- Charts ---- -->
-  <div class="charts-row">
+    <!-- ---- One Chart (two colors) ---- -->
     <div class="chart-wrap">
-      <h3>Somatic Profile</h3>
-      <canvas id="somaticChart" class="chart-canvas"></canvas>
+      <h3>Totals</h3>
+      <canvas id="totalsChart" class="chart-canvas"></canvas>
     </div>
 
-    <div class="chart-wrap">
-      <h3>Creative Profile</h3>
-      <canvas id="creativeChart" class="chart-canvas"></canvas>
+    <div class="hr"></div>
+    <div id="comparisonBlock"></div>
+
+    <div class="btns">
+      <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
+      <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
     </div>
   </div>
-
-  <div class="hr"></div>
-  <div id="comparisonBlock"></div>
-
-  <div class="btns">
-    <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
-    <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
-  </div>
-</div>
 </main>
 
 <!-- ---- Chart.js (load once) ---- -->
@@ -307,7 +319,7 @@ function setText(id, v){
   if(el) el.textContent = (v ?? "—");
 }
 
-/* ---- Round definitions (Somatic first) ---- */
+/* ---- Round definitions ---- */
 const ROUNDS = [
   {
     id: "somatic",
@@ -573,82 +585,43 @@ const modeLabel = document.getElementById("modeLabel");
 const nextBtn = document.getElementById("nextBtn");
 
 /* ---- Charts State ---- */
-let creativeChartInstance = null;
-let somaticChartInstance = null;
+let totalsChartInstance = null;
 
 function destroyCharts(){
-  if(creativeChartInstance){ creativeChartInstance.destroy(); creativeChartInstance = null; }
-  if(somaticChartInstance){ somaticChartInstance.destroy(); somaticChartInstance = null; }
+  if(totalsChartInstance){
+    totalsChartInstance.destroy();
+    totalsChartInstance = null;
+  }
 }
 
 function renderCharts(attempt){
   if(typeof Chart === "undefined") return;
 
-  const creativeCanvas = document.getElementById("creativeChart");
-  const somaticCanvas = document.getElementById("somaticChart");
-  if(!creativeCanvas || !somaticCanvas) return;
+  const canvas = document.getElementById("totalsChart");
+  if(!canvas) return;
 
   destroyCharts();
 
-  const creativeValues = [
-    attempt.scores.cei ?? 0,
-    attempt.scores.fluency ?? 0,
-    attempt.scores.flexibility ?? 0,
-    attempt.scores.associative ?? 0,
-    attempt.scores.perspective ?? 0,
-    attempt.scores.ambiguity ?? 0,
-    attempt.scores.complexity ?? 0
-  ];
+  const creative = attempt.scores.cei ?? 0;
+  const somatic = attempt.scores.sei ?? 0;
 
-  const somaticValues = [
-    attempt.scores.sei ?? 0,
-    attempt.scores.ees ?? 0,
-    attempt.scores.somatic_range ?? 0,
-    attempt.scores.somatic_recovery ?? 0,
-    attempt.scores.gap ?? 0
-  ];
-
-  creativeChartInstance = new Chart(creativeCanvas, {
+  totalsChartInstance = new Chart(canvas, {
     type: "bar",
     data: {
-      labels: [
-        "Creative Index",
-        "Fluency",
-        "Flexibility",
-        "Associative Strength",
-        "Perspective Shift",
-        "Ambiguity Tolerance",
-        "Complexity Handling"
-      ],
+      labels: ["Creative (CEI)", "Somatic (SEI)"],
       datasets: [{
-        label: "Creative Scores",
-        data: creativeValues,
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: 100 }
-      }
-    }
-  });
-
-  somaticChartInstance = new Chart(somaticCanvas, {
-    type: "bar",
-    data: {
-      labels: [
-        "Somatic Index",
-        "Embodied Expansion",
-        "Range",
-        "Recovery",
-        "Integration Gap"
-      ],
-      datasets: [{
-        label: "Somatic Scores",
-        data: somaticValues,
-        borderWidth: 1
+        label: "Totals",
+        data: [creative, somatic],
+        backgroundColor: [
+          "rgba(99, 179, 237, 0.55)",  /* Creative */
+          "rgba(72, 187, 120, 0.55)"   /* Somatic */
+        ],
+        borderColor: [
+          "rgba(99, 179, 237, 1)",
+          "rgba(72, 187, 120, 1)"
+        ],
+        borderWidth: 1,
+        borderRadius: 8
       }]
     },
     options: {
@@ -745,27 +718,12 @@ function showResults(attempt){
   labCard.style.display = "none";
   resultsCard.style.display = "block";
 
-  document.getElementById("ceiN").textContent = attempt.scores.cei ?? "—";
-  document.getElementById("fluencyN").textContent = attempt.scores.fluency ?? "—";
-  document.getElementById("flexN").textContent = attempt.scores.flexibility ?? "—";
-  document.getElementById("assocN").textContent = attempt.scores.associative ?? "—";
-  document.getElementById("shiftN").textContent = attempt.scores.perspective ?? "—";
-  document.getElementById("ambN").textContent = attempt.scores.ambiguity ?? "—";
-  document.getElementById("complexN").textContent = attempt.scores.complexity ?? "—";
-
-  document.getElementById("totalIdeasN").textContent = attempt.scores.ideaCount ?? "—";
-  document.getElementById("catsN").textContent = attempt.scores.categoryCount ?? "—";
-  document.getElementById("timeN").textContent = fmtTime(attempt.meta.activeSeconds ?? 0);
-
-  document.getElementById("seiN").textContent = attempt.scores.sei ?? "—";
-  document.getElementById("eesN").textContent = attempt.scores.ees ?? "—";
-  document.getElementById("gapN").textContent = attempt.scores.gap ?? "—";
-  document.getElementById("rangeN").textContent = attempt.scores.somatic_range ?? "—";
-  document.getElementById("recoveryN").textContent = attempt.scores.somatic_recovery ?? "—";
+  setText("ceiTotalN", attempt.scores.cei);
+  setText("seiTotalN", attempt.scores.sei);
 
   renderComparison(attempt);
 
-  /* ---- Render charts ONLY on Results screen ---- */
+  /* ---- Render chart ONLY on Results screen ---- */
   requestAnimationFrame(() => renderCharts(attempt));
 }
 
@@ -933,6 +891,7 @@ function finishAndScore(){
   const cei = fluency + flexibility + associative + perspective + ambComplex;
 
   const somatic = scoreSomaticIndex(state.s1_fold, state.s2_reps, state.s3_balance_sec, state.s4_recovery_sec);
+
   const ees = Math.round((cei + somatic.sei) / 2);
   const gap = Math.abs(cei - somatic.sei);
 
