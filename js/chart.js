@@ -109,8 +109,8 @@
     ds.borderWidth = vals.map((_, i) => (i === maxIdx ? 2 : 1));
 
     // Rounded corners + tighter look
-    ds.borderRadius = 6;
-    ds.borderSkipped = false;
+    //ds.borderRadius = 6;
+    //ds.borderSkipped = false;
 
     // Faux shadow via hover color + thicker bar for max
     // (Chart.js bar thickness is per-dataset, so we do max emphasis via border + hover)
