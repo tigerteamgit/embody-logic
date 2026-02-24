@@ -241,51 +241,40 @@
     <h2>Results</h2>
     <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
 
-    <div class="kpi" style="margin-top:12px;">
-      <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
-      <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
-      <div class="box"><div class="n" id="flexN">—</div><div class="t">Flexibility</div></div>
-      <div class="box"><div class="n" id="assocN">—</div><div class="t">Associative Strength</div></div>
-      <div class="box"><div class="n" id="shiftN">—</div><div class="t">Perspective Shift</div></div>
+    <!-- ---- Only keep two totals ---- -->
+    <div class="totals">
+    <div class="total-box">
+      <div class="n" id="ceiTotalN">—</div>
+      <div class="t">Creative Expansion Index (0–100)</div>
     </div>
 
-    <div class="kpi" style="margin-top:10px;">
-      <div class="box"><div class="n" id="ambN">—</div><div class="t">Ambiguity Tolerance</div></div>
-      <div class="box"><div class="n" id="complexN">—</div><div class="t">Complexity Handling</div></div>
-      <div class="box"><div class="n" id="totalIdeasN">—</div><div class="t">Ideas Count (Divergence)</div></div>
-      <div class="box"><div class="n" id="catsN">—</div><div class="t">Categories (Divergence)</div></div>
-      <div class="box"><div class="n" id="timeN">—</div><div class="t">Active Time</div></div>
-    </div>
-
-    <div class="kpi" style="margin-top:10px;">
-      <div class="box"><div class="n" id="seiN">—</div><div class="t">Somatic Expansion Index (0–100)</div></div>
-      <div class="box"><div class="n" id="eesN">—</div><div class="t">Embodied Expansion Score</div></div>
-      <div class="box"><div class="n" id="gapN">—</div><div class="t">Integration Gap (lower is better)</div></div>
-      <div class="box"><div class="n" id="rangeN">—</div><div class="t">Range (0–20)</div></div>
-      <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
-    </div>
-
-    <!-- ---- Charts live ONLY inside Results card ---- -->
-    <div class="charts-row">
-      <div class="chart-wrap">
-        <h3>Somatic Profile</h3>
-        <canvas id="somaticChart" class="chart-canvas"></canvas>
-      </div>
-      <div class="chart-wrap">
-        <h3>Creative Profile</h3>
-        <canvas id="creativeChart" class="chart-canvas"></canvas>
-      </div>
-    </div>
-      
-    <div class="hr"></div>
-
-    <div id="comparisonBlock"></div>
-
-    <div class="btns">
-      <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
-      <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
+    <div class="total-box">
+      <div class="n" id="seiTotalN">—</div>
+      <div class="t">Somatic Expansion Index (0–100)</div>
     </div>
   </div>
+
+  <!-- ---- Charts ---- -->
+  <div class="charts-row">
+    <div class="chart-wrap">
+      <h3>Somatic Profile</h3>
+      <canvas id="somaticChart" class="chart-canvas"></canvas>
+    </div>
+
+    <div class="chart-wrap">
+      <h3>Creative Profile</h3>
+      <canvas id="creativeChart" class="chart-canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+  <div id="comparisonBlock"></div>
+
+  <div class="btns">
+    <button class="btn-soft" id="retakeBtn" type="button">New Attempt</button>
+    <button class="btn-primary" id="backHomeBtn" type="button">Back Home</button>
+  </div>
+</div>
 </main>
 
 <!-- ---- Chart.js (load once) ---- -->
