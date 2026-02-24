@@ -82,25 +82,17 @@
 
     /* ---- SOMATIC DATA (first) ---- */
     const somaticData = {
-      labels: [
-        "Somatic Index",
-        "Embodied Expansion",
-        "Somatic Range",
-        "Somatic Recovery",
-        "Integration Gap"
-      ],
-      datasets: [{
-        label: "Somatic Scores",
-        data: [19, 15, 0, 5, 9],
-        backgroundColor: backgroundColor: [
-        '#FF6B6B',
-        '#4ECDC4',
-        '#FFE66D',
-        '#1A535C',
-        '#FF9F1C'
-        ]   // black fill
-      }]
-    };
+      labels: ['Somatic Index', 'Embodied Expansion', 'Range', 'Recovery', 'Integration Gap'],
+      datasets: [
+      {
+        label: 'Somatic Scores',
+        data: [18, 14, 0, 5, 9],
+        backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1a535c', '#ff9f1c'],
+        borderColor:     ['#ff6b6b', '#4ecdc4', '#ffe66d', '#1a535c', '#ff9f1c'],
+        borderWidth: 1,
+      },
+    ],
+   };
 
     /* ---- CREATIVE DATA (second) ---- */
     const creativeData = {
