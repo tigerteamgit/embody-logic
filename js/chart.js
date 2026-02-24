@@ -80,8 +80,10 @@
         label: "Somatic Scores",
         data: [19, 15, 0, 5, 9],
         borderWidth: 1,
-        backgroundColor: "rgba(34,197,94,0.35)",
-        borderColor: "rgba(34,197,94,0.9)"
+        backgroundColor: "rgba(20, 20, 20, 0.85)",   // black fill
+        borderColor: "rgba(0, 0, 0, 1)",              // solid black"
+        borderWidth: 1.5,
+        hoverBackgroundColor: "rgba(40, 40, 40, 0.95)"
       }]
     };
 
@@ -100,8 +102,10 @@
         label: "Creative Scores",
         data: [10, 5, 5, 0, 0, 0, 0],
         borderWidth: 1,
-        backgroundColor: "rgba(59,130,246,0.35)",
-        borderColor: "rgba(59,130,246,0.9)"
+        backgroundColor: "rgba(124, 58, 237, 0.85)",   // purple fill
+        borderColor: "rgba(91, 33, 182, 1)",            // darker purple
+        borderWidth: 1.5,
+        hoverBackgroundColor: "rgba(139, 92, 246, 0.95)"
       }]
     };
 
