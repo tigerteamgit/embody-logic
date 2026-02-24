@@ -146,9 +146,25 @@
       transition: width .2s ease;
     }
 
+    /* ---- Charts ---- */
+    .chart-wrap{
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .chart-wrap h3{ margin: 0 0 10px; }
+    .chart-canvas{
+      width: 100%;
+      height: 260px; /* chart height */
+      display:block;
+    }
+
     /* ---- Responsive KPI ---- */
     @media (max-width: 900px){
       .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .chart-canvas{ height: 280px; }
     }
   </style>
 </head>
@@ -249,6 +265,17 @@
       <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
     </div>
 
+    <!-- ---- Charts live ONLY inside Results card ---- -->
+    <div class="chart-wrap">
+      <h3>Creative Profile</h3>
+      <canvas id="creativeChart" class="chart-canvas"></canvas>
+    </div>
+
+    <div class="chart-wrap">
+      <h3>Somatic Profile</h3>
+      <canvas id="somaticChart" class="chart-canvas"></canvas>
+    </div>
+
     <div class="hr"></div>
 
     <div id="comparisonBlock"></div>
@@ -259,6 +286,9 @@
     </div>
   </div>
 </main>
+
+<!-- ---- Chart.js (load once) ---- -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 /* ---- Storage ---- */
@@ -547,6 +577,95 @@ const stepLabel = document.getElementById("stepLabel");
 const modeLabel = document.getElementById("modeLabel");
 const nextBtn = document.getElementById("nextBtn");
 
+/* ---- Charts State ---- */
+let creativeChartInstance = null;
+let somaticChartInstance = null;
+
+function destroyCharts(){
+  if(creativeChartInstance){ creativeChartInstance.destroy(); creativeChartInstance = null; }
+  if(somaticChartInstance){ somaticChartInstance.destroy(); somaticChartInstance = null; }
+}
+
+function renderCharts(attempt){
+  if(typeof Chart === "undefined") return;
+
+  const creativeCanvas = document.getElementById("creativeChart");
+  const somaticCanvas = document.getElementById("somaticChart");
+  if(!creativeCanvas || !somaticCanvas) return;
+
+  destroyCharts();
+
+  const creativeValues = [
+    attempt.scores.cei ?? 0,
+    attempt.scores.fluency ?? 0,
+    attempt.scores.flexibility ?? 0,
+    attempt.scores.associative ?? 0,
+    attempt.scores.perspective ?? 0,
+    attempt.scores.ambiguity ?? 0,
+    attempt.scores.complexity ?? 0
+  ];
+
+  const somaticValues = [
+    attempt.scores.sei ?? 0,
+    attempt.scores.ees ?? 0,
+    attempt.scores.somatic_range ?? 0,
+    attempt.scores.somatic_recovery ?? 0,
+    attempt.scores.gap ?? 0
+  ];
+
+  creativeChartInstance = new Chart(creativeCanvas, {
+    type: "bar",
+    data: {
+      labels: [
+        "Creative Index",
+        "Fluency",
+        "Flexibility",
+        "Associative Strength",
+        "Perspective Shift",
+        "Ambiguity Tolerance",
+        "Complexity Handling"
+      ],
+      datasets: [{
+        label: "Creative Scores",
+        data: creativeValues,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100 }
+      }
+    }
+  });
+
+  somaticChartInstance = new Chart(somaticCanvas, {
+    type: "bar",
+    data: {
+      labels: [
+        "Somatic Index",
+        "Embodied Expansion",
+        "Range",
+        "Recovery",
+        "Integration Gap"
+      ],
+      datasets: [{
+        label: "Somatic Scores",
+        data: somaticValues,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100 }
+      }
+    }
+  });
+}
+
 /* ---- Bulletproof: Next can NEVER be disabled (no loops) ---- */
 function unlockNext(){
   if(!nextBtn) return;
@@ -610,6 +729,7 @@ function stopTimer(){
 /* ---- Navigation ---- */
 function showIntro(){
   stopTimer();
+  destroyCharts();
   introCard.style.display = "block";
   labCard.style.display = "none";
   resultsCard.style.display = "none";
@@ -622,6 +742,7 @@ function showLab(){
   introCard.style.display = "none";
   labCard.style.display = "block";
   resultsCard.style.display = "none";
+  destroyCharts();
   unlockNext();
 }
 function showResults(attempt){
@@ -648,6 +769,9 @@ function showResults(attempt){
   document.getElementById("recoveryN").textContent = attempt.scores.somatic_recovery ?? "—";
 
   renderComparison(attempt);
+
+  /* ---- Render charts ONLY on Results screen ---- */
+  requestAnimationFrame(() => renderCharts(attempt));
 }
 
 /* ---- Start / Reset ---- */
@@ -972,57 +1096,6 @@ function cryptoRandomId(){
 
 /* ---- Init ---- */
 showIntro();
-</script>
-  
-<!-- Charts  -->
-<canvas id="somaticChart"></canvas>
-<canvas id="creativeChart"></canvas>  
-  
-<!-- 1️⃣ Load Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- 2️⃣ Create charts AFTER Chart.js loads -->
-<script>
-
-/* ---- Somatic Chart ---- */
-new Chart(document.getElementById("somaticChart"), {
-  type: "bar",
-  data: {
-    labels: [
-      "Somatic Index",
-      "Embodied Expansion",
-      "Range",
-      "Recovery",
-      "Integration Gap"
-    ],
-    datasets: [{
-      label: "Somatic Scores",
-      data: [19,15,0,5,9]
-    }]
-  },
-  options: {
-    scales: {
-      y: { beginAtZero: true, max: 100 }
-    }
-  }
-});  
-  
-/* ---- Creative Chart ---- */
-new Chart(document.getElementById("creativeChart"), {
-  type: "bar",
-  data: {
-    labels: ["Creative Index","Fluency","Flexibility"],
-    datasets: [{
-      label: "Creative Scores",
-      data: [10,5,5]
-    }]
-  },
-  options: {
-    scales: {
-      y: { beginAtZero: true, max: 100 }
-    }
-  }
-});
 </script>
 </body>
 </html>
