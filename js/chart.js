@@ -145,15 +145,15 @@
     };
 
     /* ---- CREATIVE DATA (second) ---- */
-    const creativeValues = [10, 5, 5, 0, 0, 0, 0];
+    const creativeValues = [10, 5, 5, 0, 0];
     const creativeData = {
       labels: [
         "Creative Index",
         "Fluency",
         "Flexibility",
         "Associative Strength",
-        "Perspective Shift",
-        "Ambiguity Tolerance",
+        //"Perspective Shift",
+        //"Ambiguity Tolerance",
         "Complexity Handling"
       ],
       datasets: [{
