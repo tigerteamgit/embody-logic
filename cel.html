@@ -188,6 +188,30 @@
       .chart-canvas{ height: 280px; }
       .totals{ grid-template-columns: 1fr; }
     }
+
+    /* ---- Header button polish ---- */
+    header .btn-outline{
+      min-width: 104px;          /* all same width */
+      height: 42px;              /* all same height */
+      padding: 10px 14px;        /* consistent */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background-color .12s ease, border-color .12s ease, transform .08s ease;
+    }
+
+    /* hover / pressed feedback */
+    header .btn-outline:hover{
+      background: rgba(255,255,255,.12);
+      border-color: rgba(255,255,255,.35);
+    }
+
+    /* click feedback (instant “pressed” feel) */
+    header .btn-outline:active{
+      transform: translateY(1px);
+      background: rgba(255,255,255,.18);
+    }
   </style>
 </head>
 
@@ -198,12 +222,18 @@
       <strong>Creative Expansion Lab</strong>
       <span>Playful experiment. Serious metrics. Private by default (stored in your browser).</span>
     </div>
+
+    <!-- ✅ ADDED: Manual timer controls (start/stop/reset) -->
     <div style="display:flex; gap:10px; align-items:center;">
       <div class="pill timer" id="timerPill">Timer: 00:00</div>
+      <button class="btn-outline" id="timerStartBtn" type="button">Start</button>
+      <button class="btn-outline" id="timerStopBtn" type="button">Stop</button>
+      <button class="btn-outline" id="timerResetBtn" type="button">Reset Timer</button>
+
       <button class="btn-outline" id="exportBtn" type="button">Export CSV</button>
-      <button class="btn-outline" id="resetAllBtn" type="button">Reset</button>
     </div>
   </div>
+
   <div class="bar" style="padding-top:0;">
     <div style="width:100%">
       <div class="progress"><div id="progressBar"></div></div>
@@ -264,7 +294,6 @@
     <h2>Results</h2>
     <p class="muted">Scores are stored locally (on this device). Export CSV if you want your database portable.</p>
 
-    <!-- Only two totals (Somatic first, Creative second) -->
     <div class="totals">
       <div class="total-box">
         <div class="n" id="seiTotalN">—</div>
@@ -276,7 +305,6 @@
       </div>
     </div>
 
-    <!-- Legacy KPI blocks kept (hidden via CSS) -->
     <div class="kpi" style="margin-top:12px;">
       <div class="box"><div class="n" id="ceiN">—</div><div class="t">Creative Expansion Index (0–100)</div></div>
       <div class="box"><div class="n" id="fluencyN">—</div><div class="t">Fluency</div></div>
@@ -301,7 +329,6 @@
       <div class="box"><div class="n" id="recoveryN">—</div><div class="t">Recovery (0–20)</div></div>
     </div>
 
-    <!-- Charts (Somatic first, then Creative) -->
     <div class="chart-wrap">
       <h3>Somatic Profile</h3>
       <div class="chart-area">
@@ -596,7 +623,12 @@ const state = {
   finishedAt: null,
   activeSeconds: 0,
   roundIndex: 0,
+
+  /* ✅ ADDED: round countdown */
   timer: { running:false, endAt: null, intervalId: null },
+
+  /* ✅ ADDED: manual stopwatch */
+  manual: { running:false, startedAt: null, elapsedMs: 0, intervalId: null }
 };
 
 /* ---- DOM ---- */
@@ -611,6 +643,11 @@ const progressBar = document.getElementById("progressBar");
 const stepLabel = document.getElementById("stepLabel");
 const modeLabel = document.getElementById("modeLabel");
 const nextBtn = document.getElementById("nextBtn");
+
+/* ✅ ADDED: timer buttons */
+const timerStartBtn = document.getElementById("timerStartBtn");
+const timerStopBtn  = document.getElementById("timerStopBtn");
+const timerResetBtn = document.getElementById("timerResetBtn");
 
 /* ---- Charts State ---- */
 let creativeChartInstance = null;
@@ -761,19 +798,16 @@ function unlockNext(){
   nextBtn.removeAttribute("disabled");
 }
 unlockNext();
-
 new MutationObserver(() => unlockNext())
   .observe(nextBtn, { attributes: true, attributeFilter: ["disabled"] });
 
-/* ---- Bind buttons ONCE ---- */
-document.getElementById("startBtn").onclick = startLab;
-document.getElementById("viewResultsBtn").onclick = showStoredResults;
-document.getElementById("backBtn").onclick = prevRound;
-nextBtn.onclick = () => { unlockNext(); nextRound(); };
-document.getElementById("retakeBtn").onclick = () => { resetAttempt(false); showIntro(); };
-document.getElementById("backHomeBtn").onclick = showIntro;
-document.getElementById("exportBtn").onclick = exportCSV;
-document.getElementById("resetAllBtn").onclick = resetAll;
+/* ✅ ADDED: safe binder so missing buttons don't kill the app */
+function safeBindClick(id, fn){
+  const el = document.getElementById(id);
+  if(!el){ console.warn("[CEL] Missing element:", id); return; }
+  if(typeof fn !== "function"){ console.warn("[CEL] Missing handler for:", id); return; }
+  el.addEventListener("click", fn);
+}
 
 /* ---- Progress ---- */
 function setProgress(){
@@ -784,12 +818,13 @@ function setProgress(){
   modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
 }
 
-/* ---- Timer (no auto-advance) ---- */
+/* ---- Timer: Round countdown (used by rounds with timedSeconds) ---- */
 function startTimer(seconds){
   stopTimer();
 
   if(!seconds || seconds <= 0){
-    timerPill.textContent = `Timer: 00:00`;
+    // Don't stomp manual timer display; manual timer owns the pill when running.
+    if(!state.manual.running) timerPill.textContent = `Timer: 00:00`;
     return;
   }
 
@@ -800,11 +835,13 @@ function startTimer(seconds){
   state.timer.intervalId = setInterval(() => {
     const leftMs = state.timer.endAt - Date.now();
     const left = Math.max(0, Math.ceil(leftMs/1000));
-    timerPill.textContent = `Timer: ${fmtTime(left)}`;
+    if(!state.manual.running){
+      timerPill.textContent = `Timer: ${fmtTime(left)}`;
+    }
 
     if(left <= 0){
       stopTimer();
-      timerPill.textContent = `Timer: 00:00`;
+      if(!state.manual.running) timerPill.textContent = `Timer: 00:00`;
     }
   }, 250);
 }
@@ -814,14 +851,53 @@ function stopTimer(){
   state.timer.running = false;
 }
 
+/* ✅ ADDED: Manual stopwatch (Start/Stop/Reset buttons) */
+function manualTick(){
+  const elapsed = state.manual.elapsedMs + (state.manual.running ? (Date.now() - state.manual.startedAt) : 0);
+  timerPill.textContent = `Timer: ${fmtTime(Math.floor(elapsed / 1000))}`;
+}
+function manualStart(){
+  if(state.manual.running) return;
+  state.manual.running = true;
+  state.manual.startedAt = Date.now();
+  if(state.manual.intervalId) clearInterval(state.manual.intervalId);
+  state.manual.intervalId = setInterval(manualTick, 250);
+  manualTick();
+}
+function manualStop(){
+  if(!state.manual.running) return;
+  state.manual.elapsedMs += (Date.now() - state.manual.startedAt);
+  state.manual.startedAt = null;
+  state.manual.running = false;
+  if(state.manual.intervalId) clearInterval(state.manual.intervalId);
+  state.manual.intervalId = null;
+  manualTick();
+}
+function manualReset(){
+  state.manual.running = false;
+  state.manual.startedAt = null;
+  state.manual.elapsedMs = 0;
+  if(state.manual.intervalId) clearInterval(state.manual.intervalId);
+  state.manual.intervalId = null;
+
+  // Restore pill to current round countdown if we're in lab and the round is timed
+  if(labCard.style.display !== "none"){
+    const round = ROUNDS[state.roundIndex];
+    const sec = round?.timedSeconds || 0;
+    timerPill.textContent = `Timer: ${fmtTime(sec)}`;
+  } else {
+    timerPill.textContent = `Timer: 00:00`;
+  }
+}
+
 /* ---- Navigation ---- */
 function showIntro(){
   stopTimer();
+  manualReset();
   destroyCharts();
   introCard.style.display = "block";
   labCard.style.display = "none";
   resultsCard.style.display = "none";
-  timerPill.textContent = `Timer: 00:00`;
   progressBar.style.width = "0%";
   stepLabel.textContent = "Step";
   modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
@@ -863,7 +939,6 @@ function showResults(attempt){
 
   renderComparison(attempt);
 
-  /* ---- Render charts ONLY on Results screen ---- */
   requestAnimationFrame(() => renderCharts(attempt));
 }
 
@@ -876,11 +951,14 @@ function startLab(){
   state.activeSeconds = 0;
   state.roundIndex = 0;
 
+  manualReset(); // ✅ ensure manual timer is clean at start
+
   showLab();
   renderRound();
 }
 function resetAttempt(clearName){
   stopTimer();
+  manualReset();
   for (const key of Object.keys(state)) {
     if (key.startsWith("r") || key.startsWith("s")) delete state[key];
   }
@@ -899,6 +977,7 @@ function prevRound(){
   if(state.roundIndex <= 0) return;
   ROUNDS[state.roundIndex].collect(state);
   state.roundIndex -= 1;
+  manualReset(); // ✅ stop manual timer when changing rounds
   renderRound();
 }
 function nextRound(){
@@ -908,6 +987,7 @@ function nextRound(){
 
   if(state.roundIndex < ROUNDS.length - 1){
     state.roundIndex += 1;
+    manualReset(); // ✅ stop manual timer when changing rounds
     renderRound();
   } else {
     finishAndScore();
@@ -916,6 +996,17 @@ function nextRound(){
 
 /* ---- Render ---- */
 function renderRound(){
+  // guard: if something ever breaks, don't hard-crash
+  if(!Array.isArray(ROUNDS) || ROUNDS.length === 0){
+    console.error("[CEL] ROUNDS missing/empty.");
+    alert("ROUNDS is missing/empty. Check cel.html script.");
+    return;
+  }
+  if(state.roundIndex < 0 || state.roundIndex >= ROUNDS.length){
+    console.warn("[CEL] roundIndex out of range; resetting to 0");
+    state.roundIndex = 0;
+  }
+
   stopTimer();
   setProgress();
 
@@ -926,6 +1017,7 @@ function renderRound(){
 
   unlockNext();
 
+  // Round countdown is still supported; manual timer can override when running
   timerPill.textContent = `Timer: ${fmtTime(round.timedSeconds || 0)}`;
   startTimer(round.timedSeconds || 0);
 }
@@ -1009,6 +1101,8 @@ function scoreSomaticIndex(foldScore, reps, balanceSec, recoverySec){
 
 function finishAndScore(){
   stopTimer();
+  manualStop(); // ✅ freeze manual timer (if running)
+
   state.finishedAt = new Date().toISOString();
 
   const ideas = [
@@ -1034,6 +1128,7 @@ function finishAndScore(){
   const ees = Math.round((cei + somatic.sei) / 2);
   const gap = Math.abs(cei - somatic.sei);
 
+  // Keep your original elapsedSec behavior (wall clock), but we expose manual timer too
   const elapsedSec = state.startedAt
     ? Math.max(0, Math.round((Date.parse(state.finishedAt) - Date.parse(state.startedAt)) / 1000))
     : 0;
@@ -1045,7 +1140,10 @@ function finishAndScore(){
       displayName: state.displayName,
       startedAt: state.startedAt,
       finishedAt: state.finishedAt,
-      activeSeconds: elapsedSec
+      activeSeconds: elapsedSec,
+
+      /* ✅ ADDED: manual elapsed seconds for debugging / future use */
+      manualSeconds: Math.floor((state.manual.elapsedMs || 0) / 1000)
     },
     inputs: { ...state },
     scores: {
@@ -1157,10 +1255,13 @@ function exportCSV(){
     return;
   }
 
-  const headers = ["id","attemptType","displayName","startedAt","finishedAt","activeSeconds","cei","sei","ees","gap"];
+  const headers = ["id","attemptType","displayName","startedAt","finishedAt","activeSeconds","cei","sei","ees","gap","manualSeconds"];
   const rows = attempts.map(a => {
     const m=a.meta, s=a.scores;
-    const vals = [a.id,m.attemptType,m.displayName||"",m.startedAt,m.finishedAt,m.activeSeconds,s.cei,s.sei,s.ees,s.gap];
+    const vals = [
+      a.id,m.attemptType,m.displayName||"",m.startedAt,m.finishedAt,m.activeSeconds,
+      s.cei,s.sei,s.ees,s.gap,(m.manualSeconds ?? "")
+    ];
     return vals.map(v => `"${String(v ?? "").replaceAll('"','""')}"`).join(",");
   });
 
@@ -1187,20 +1288,48 @@ function cryptoRandomId(){
   return String(Math.random()).slice(2) + "-" + String(Date.now());
 }
 
-/* ---- Init ---- */
-function showIntro(){
-  stopTimer();
-  destroyCharts();
-  introCard.style.display = "block";
-  labCard.style.display = "none";
-  resultsCard.style.display = "none";
-  timerPill.textContent = `Timer: 00:00`;
-  progressBar.style.width = "0%";
-  stepLabel.textContent = "Step";
-  modeLabel.textContent = `Mode: ${state.attemptType === "baseline" ? "Baseline" : "Post"}`;
-}
+/* ✅ ADDED: Console-friendly debug surface */
+window.CEL = {
+  state,
+  ROUNDS,
+  round: () => ROUNDS[state.roundIndex],
+  // manual stopwatch
+  manualTimer: { start: manualStart, stop: manualStop, reset: manualReset, tick: manualTick },
+  // round countdown
+  roundTimer: { start: startTimer, stop: stopTimer },
+  // quick checks
+  checks: () => ({
+    rounds: Array.isArray(ROUNDS) ? ROUNDS.length : "missing",
+    roundIndex: state.roundIndex,
+    timerButtons: {
+      start: !!document.getElementById("timerStartBtn"),
+      stop: !!document.getElementById("timerStopBtn"),
+      reset: !!document.getElementById("timerResetBtn"),
+      pill: !!document.getElementById("timerPill")
+    },
+    manual: { running: state.manual.running, elapsedMs: state.manual.elapsedMs },
+    countdown: { running: state.timer.running, endAt: state.timer.endAt }
+  })
+};
 
+/* ✅ ADDED: bind manual timer buttons safely */
+if(timerStartBtn) timerStartBtn.addEventListener("click", () => manualStart());
+if(timerStopBtn)  timerStopBtn.addEventListener("click", () => manualStop());
+if(timerResetBtn) timerResetBtn.addEventListener("click", () => manualReset());
+
+/* ---- Bind buttons ONCE (safe) ---- */
+safeBindClick("startBtn", startLab);
+safeBindClick("viewResultsBtn", showStoredResults);
+safeBindClick("backBtn", prevRound);
+safeBindClick("nextBtn", () => { unlockNext(); nextRound(); });
+safeBindClick("retakeBtn", () => { resetAttempt(false); showIntro(); });
+safeBindClick("backHomeBtn", showIntro);
+safeBindClick("exportBtn", exportCSV);
+safeBindClick("resetAllBtn", resetAll);
+
+/* ---- Init ---- */
 showIntro();
+console.log("[CEL] loaded. Try CEL.checks(), CEL.manualTimer.start(), CEL.manualTimer.stop()");
 </script>
 </body>
 </html>
