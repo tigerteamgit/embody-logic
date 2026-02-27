@@ -1,38 +1,88 @@
-/* ---- Creative Expansion Lab: style.css ---- */
-/* Build stamp (change this line to force a visible diff in commits): 2026-02-24-01 */
+/* ---- Creative Expansion Lab: styles.css ---- */
+/* Build stamp (change this line to force a visible diff in commits): 2026-02-27-01 */
+
+/* ---- Fonts ---- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap");
 
 /* ---- Base ---- */
 :root{
-  --bg:#0b0b0b;
-  --bg2:#101010;
-  --paper:#ffffff;
-  --ink:#111;
-  --muted:#666;
-  --line:#eaeaea;
-  --accent:#111;
-  --soft:#f6f6f6;
-  --good:#0b7;
-  --warn:#c80;
-  --bad:#d33;
+  /* Surfaces */
+  --bg0:#05070b;
+  --bg1:#070b12;
+  --bg2:#0a0f1a;
 
-  --radius:14px;
-  --shadow:0 12px 30px rgba(0,0,0,.12);
-  --max: 860px;
+  /* Ink */
+  --ink:#eaf0ff;
+  --muted:rgba(234,240,255,.72);
+  --faint:rgba(234,240,255,.52);
+
+  /* Chrome + neon */
+  --chrome1: rgba(255,255,255,.10);
+  --chrome2: rgba(255,255,255,.06);
+  --chrome3: rgba(255,255,255,.14);
+  --edge: rgba(170,200,255,.18);
+
+  --cyan: #35d6ff;
+  --violet:#8a5cff;
+  --mint:  #25ffb6;
+  --amber: #ffbd3a;
+  --red:   #ff3b4d;
+
+  --radius: 16px;
+  --shadow: 0 22px 60px rgba(0,0,0,.55);
+  --max: 980px;
 
   /* ---- Chart sizing ---- */
-  --chart-h: 320px;        /* default chart height */
-  --chart-h-mobile: 320px; /* mobile chart height */
+  --chart-h: 320px;
+  --chart-h-mobile: 320px;
 }
 
 *{ box-sizing:border-box; }
-
 html, body{ height:100%; }
 
 body{
   margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: linear-gradient(180deg, var(--bg2), var(--bg));
-  color:#eee;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--ink);
+
+  /* cyber backdrop */
+  background:
+    radial-gradient(1200px 700px at 70% -10%, rgba(53,214,255,.18), transparent 60%),
+    radial-gradient(1000px 650px at 10% 10%, rgba(138,92,255,.18), transparent 60%),
+    radial-gradient(900px 600px at 60% 110%, rgba(37,255,182,.10), transparent 55%),
+    linear-gradient(180deg, var(--bg2), var(--bg0));
+  overflow-x:hidden;
+}
+
+/* subtle grid */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.35;
+  background:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 20%, rgba(0,0,0,1), rgba(0,0,0,.25) 60%, rgba(0,0,0,0) 85%);
+}
+
+/* scanline */
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.08;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,.45) 0px,
+    rgba(255,255,255,.45) 1px,
+    transparent 2px,
+    transparent 6px
+  );
+  mix-blend-mode: overlay;
 }
 
 /* ---- Header ---- */
@@ -40,9 +90,12 @@ header{
   position: sticky;
   top:0;
   z-index:10;
-  backdrop-filter: blur(10px);
-  background: rgba(10,10,10,.75);
-  border-bottom: 1px solid rgba(255,255,255,.08);
+
+  backdrop-filter: blur(14px);
+  background:
+    linear-gradient(180deg, rgba(10,14,24,.85), rgba(10,14,24,.55));
+  border-bottom: 1px solid rgba(150,190,255,.14);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
 }
 
 .bar{
@@ -55,46 +108,94 @@ header{
   gap:12px;
 }
 
-.title{ display:flex; flex-direction:column; gap:2px; }
-.title strong{ font-size: 15px; letter-spacing:.2px; }
-.title span{ font-size: 12px; color: rgba(255,255,255,.65); }
+.title{ display:flex; flex-direction:column; gap:3px; }
+.title strong{
+  font-family: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 16px;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+}
+.title span{
+  font-size: 12px;
+  color: rgba(234,240,255,.65);
+}
 
 /* ---- Pills ---- */
 .pill{
   font-size:12px;
-  padding:6px 10px;
-  border:1px solid rgba(255,255,255,.16);
+  padding:7px 11px;
   border-radius: 999px;
-  color: rgba(255,255,255,.85);
-  background: rgba(255,255,255,.06);
   white-space:nowrap;
+
+  color: rgba(234,240,255,.92);
+  border: 1px solid rgba(170,200,255,.20);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 10px 22px rgba(0,0,0,.25);
 }
 
 .timer{
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
-  color: rgba(255,255,255,.92);
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  letter-spacing:.2px;
 }
 
 /* ---- Main Layout ---- */
 main{
   max-width: var(--max);
-  margin: 18px auto 80px;
+  margin: 18px auto 90px;
   padding: 0 16px;
 }
 
-/* ---- Cards ---- */
+/* ---- Cards (glass + chrome) ---- */
 .card{
-  background: var(--paper);
-  color: var(--ink);
+  position:relative;
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
+  padding: 20px;
   margin: 14px 0;
-  border: 1px solid rgba(0,0,0,.06);
+
+  color: var(--ink);
+  background:
+    radial-gradient(900px 300px at 30% 0%, rgba(53,214,255,.10), transparent 55%),
+    radial-gradient(700px 280px at 80% 15%, rgba(138,92,255,.12), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
+  border: 1px solid rgba(170,200,255,.18);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
 }
 
-.card h1, .card h2, .card h3 { margin: 0 0 10px; }
+.card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius: calc(var(--radius) + 1px);
+  pointer-events:none;
+  background: conic-gradient(
+    from 180deg,
+    rgba(53,214,255,.0),
+    rgba(53,214,255,.20),
+    rgba(138,92,255,.18),
+    rgba(37,255,182,.14),
+    rgba(53,214,255,.0)
+  );
+  filter: blur(18px);
+  opacity:.45;
+  z-index:-1;
+}
+
+.card h1, .card h2, .card h3{
+  margin: 0 0 10px;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  letter-spacing:.6px;
+  text-transform: uppercase;
+}
+
+.card h1{ font-size: 34px; line-height: 1.1; }
+.card h2{ font-size: 20px; }
+.card h3{ font-size: 15px; }
+
 .muted{ color: var(--muted); }
 
 /* ---- Form Layout ---- */
@@ -106,29 +207,38 @@ main{
 .row > *{ flex: 1; min-width: 240px; }
 
 label{
-  font-size:13px;
-  color:#333;
+  font-size:12px;
+  color: rgba(234,240,255,.78);
   display:block;
   margin:10px 0 6px;
+  letter-spacing:.25px;
+  text-transform: uppercase;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
 }
 
+/* Inputs: dark chrome */
 input[type="text"], input[type="number"], textarea, select{
   width:100%;
   padding: 12px 12px;
   border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color:#111;
+  border: 1px solid rgba(170,200,255,.18);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.22));
+  color: var(--ink);
   outline:none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .08s ease;
 }
+
+input::placeholder, textarea::placeholder{ color: rgba(234,240,255,.38); }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 textarea:focus,
 select:focus{
-  border-color: rgba(17,17,17,.55);
-  box-shadow: 0 0 0 3px rgba(17,17,17,.08);
+  border-color: rgba(53,214,255,.55);
+  box-shadow:
+    0 0 0 3px rgba(53,214,255,.14),
+    0 14px 30px rgba(0,0,0,.28);
 }
 
 textarea{
@@ -138,17 +248,25 @@ textarea{
 
 .hr{
   height:1px;
-  background: var(--line);
+  background: rgba(170,200,255,.14);
   margin: 14px 0;
 }
 
 /* ---- Notices ---- */
 .notice{
-  background: #fff7e6;
-  border: 1px solid #ffe0a8;
+  border-radius: 14px;
   padding: 12px 14px;
-  border-radius: 12px;
-  color:#5a3d00;
+  color: rgba(234,240,255,.92);
+  border: 1px solid rgba(255,189,58,.22);
+  background:
+    radial-gradient(700px 220px at 15% 0%, rgba(255,189,58,.14), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+}
+
+.notice strong{
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  letter-spacing:.4px;
+  text-transform: uppercase;
 }
 
 /* ---- Buttons ---- */
@@ -162,32 +280,76 @@ textarea{
 
 button{
   border:0;
-  border-radius: 10px;
-
-  /* smaller + bold */
-  padding: 9px 12px;
-  font-size: 14px;
-  font-weight: 900;
+  border-radius: 12px;
+  padding: 10px 14px;
 
   cursor:pointer;
-  transition: transform .05s ease, filter .15s ease, opacity .15s ease;
-  letter-spacing: .1px;
+  transition: transform .06s ease, filter .15s ease, opacity .15s ease, box-shadow .15s ease;
+  letter-spacing: .3px;
+
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  text-transform: uppercase;
 }
 
 button:active{ transform: translateY(1px); }
 
-.btn-primary{ background: #111; color:#fff; }
-.btn-soft{ background: var(--soft); color:#111; }
-.btn-danger{ background: #d33; color:#fff; }
-
-/* Header outline buttons: make them WHITE pills but with BOLD BLACK TEXT like you asked */
-.btn-outline{
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(0,0,0,.12);
-  color: #000;
+.btn-primary{
+  color: rgba(0,10,14,.95);
+  background: linear-gradient(180deg, rgba(53,214,255,.95), rgba(53,214,255,.68));
+  box-shadow:
+    0 14px 30px rgba(53,214,255,.18),
+    inset 0 1px 0 rgba(255,255,255,.30);
+}
+.btn-soft{
+  color: rgba(234,240,255,.92);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+  border: 1px solid rgba(170,200,255,.18);
+}
+.btn-danger{
+  color: rgba(255,255,255,.95);
+  background: linear-gradient(180deg, rgba(255,59,77,.95), rgba(255,59,77,.65));
+  box-shadow:
+    0 14px 30px rgba(255,59,77,.14),
+    inset 0 1px 0 rgba(255,255,255,.22);
 }
 
-button:hover{ filter: brightness(1.03); }
+/* Header outline buttons: chrome pills */
+..btn-outline{
+  background: transparent;
+  border:1px solid rgba(255,255,255,.22);
+  color:#fff;
+
+  /* ✅ same size */
+  height: 38px;
+  min-width: 92px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* ✅ nice feel */
+  transition: background-color .12s ease, border-color .12s ease, transform .06s ease, box-shadow .12s ease;
+}
+
+/* ✅ hover */
+.btn-outline:hover{
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.35);
+}
+
+/* ✅ visible "pressed" moment */
+.btn-outline:active{
+  transform: translateY(1px);
+}
+
+/* ✅ persistent "pressed" state we toggle from JS */
+.btn-outline.is-pressed{
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.55);
+  box-shadow: 0 0 0 2px rgba(255,255,255,.12) inset;
+}
+
+button:hover{ filter: brightness(1.05); }
 button:disabled{
   opacity:.5;
   cursor:not-allowed;
@@ -195,158 +357,43 @@ button:disabled{
   filter:none;
 }
 
-/* ---- Make the Next button visually consistent (kept!) ---- */
-#nextBtn{
-  background:#111;
-  color:#fff;
-}
-
-/* Optional: keep Back/Next aligned nicely on small screens */
-#backBtn, #nextBtn{
-  min-width: 120px;
-}
-
 /* ---- Progress ---- */
 .progress{
   height:8px;
-  background: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.10);
   border-radius:999px;
   overflow:hidden;
+  border: 1px solid rgba(170,200,255,.14);
 }
 .progress > div{
   height:100%;
   width:0%;
-  background: rgba(255,255,255,.9);
+  background:
+    linear-gradient(90deg, rgba(53,214,255,.85), rgba(138,92,255,.75));
   transition: width .2s ease;
+  box-shadow: 0 0 18px rgba(53,214,255,.20);
 }
-
-/* ---- KPI ---- */
-.kpi{
-  display:grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap:10px;
-}
-.kpi .box{
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px;
-  background: #fff;
-}
-.kpi .box .n{ font-size: 24px; font-weight: 800; }
-.kpi .box .t{ font-size: 12px; color: var(--muted); }
 
 /* ---- Simple status colors ---- */
-.good{ color: var(--good); font-weight:700; }
-.warn{ color: var(--warn); font-weight:700; }
-.bad{ color: var(--bad); font-weight:700; }
+.good{ color: var(--mint); font-weight:800; }
+.warn{ color: var(--amber); font-weight:800; }
+.bad{  color: var(--red); font-weight:800; }
 
-/* ---- Tables (if any results tables exist) ---- */
-table{
-  width:100%;
-  border-collapse:collapse;
-}
+/* ---- Tables ---- */
+table{ width:100%; border-collapse:collapse; }
 th, td{
   padding:10px;
-  border-bottom:1px solid var(--line);
+  border-bottom:1px solid rgba(170,200,255,.14);
 }
-th{ text-align:left; font-size:13px; color:#333; }
-
-/* ---- Responsive ---- */
-@media (max-width: 900px){
-  .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .row > *{ min-width: 200px; }
-}
-
-@media (max-width: 520px){
-  .bar{ flex-direction:column; align-items:flex-start; }
-  .btns button{ width:100%; }
-  #backBtn, #nextBtn{ width:100%; }
+th{
+  text-align:left;
+  font-size:12px;
+  color: rgba(234,240,255,.78);
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  text-transform: uppercase;
 }
 
-/* ---- Layout Split ---- */
-.hero-split{
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 40px 18px 70px;
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 26px;
-  align-items: start;
-}
-@media (max-width: 920px){
-  .hero-split{ grid-template-columns: 1fr; }
-}
-
-/* ---- Right Visual Panel ---- */
-.visual-card{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  position: sticky;
-  top: 18px;
-}
-@media (max-width: 920px){
-  .visual-card{ position: relative; top: auto; }
-}
-
-.visual-head{
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-.visual-head .label{
-  color: rgba(255,255,255,.88);
-  font-weight: 600;
-  letter-spacing: .2px;
-  font-size: 14px;
-}
-.visual-head .hint{
-  color: rgba(255,255,255,.60);
-  font-size: 12px;
-}
-
-/* ---- Media ---- */
-.visual-media{
-  aspect-ratio: 4 / 5;
-  width: 100%;
-  background: radial-gradient(circle at 40% 30%, rgba(80,180,255,.16), rgba(0,0,0,0) 55%),
-              radial-gradient(circle at 70% 70%, rgba(255,80,200,.10), rgba(0,0,0,0) 60%),
-              rgba(0,0,0,.35);
-  display: grid;
-  place-items: center;
-}
-
-.visual-media video,
-.visual-media img{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: saturate(1.15) contrast(1.05);
-}
-
-/* ---- Subtle animated glow frame ---- */
-.visual-card::before{
-  content:"";
-  position:absolute;
-  inset:-2px;
-  border-radius: calc(var(--radius) + 2px);
-  background: conic-gradient(from 180deg, rgba(0,255,200,.0), rgba(0,255,200,.18), rgba(130,80,255,.20), rgba(255,80,200,.18), rgba(0,255,200,.0));
-  filter: blur(14px);
-  opacity: .55;
-  pointer-events:none;
-  animation: aura 3.2s ease-in-out infinite;
-}
-@keyframes aura{
-  0%,100%{ opacity:.35; transform: scale(1.0); }
-  50%{ opacity:.65; transform: scale(1.01); }
-}
-
-/* ---- Totals (only two) ---- */
+/* ---- Totals ---- */
 .totals{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -354,53 +401,92 @@ th{ text-align:left; font-size:13px; color:#333; }
   margin-top: 12px;
 }
 .total-box{
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid rgba(170,200,255,.18);
+  border-radius: 14px;
   padding: 12px;
-  background: #fff;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
 }
-.total-box .n{ font-size: 28px; font-weight: 900; }
-.total-box .t{ font-size: 12px; color: var(--muted); }
+.total-box .n{
+  font-size: 30px;
+  font-weight: 900;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+  letter-spacing:.6px;
+}
+.total-box .t{
+  font-size: 12px;
+  color: var(--muted);
+}
 
-/* Hide old KPI grids if you brought them back but don’t want them shown */
+/* Hide old KPI grids if present */
 .kpi.is-hidden{ display:none !important; }
 .totals.is-hidden{ display:none !important; }
 
-/* ---- Charts: card wrapper + hard height so it can't stretch the page ---- */
+/* ---- KPI (if used elsewhere) ---- */
+.kpi{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap:10px;
+}
+.kpi .box{
+  border: 1px solid rgba(170,200,255,.16);
+  border-radius: 14px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+}
+.kpi .box .n{
+  font-size: 22px;
+  font-weight: 900;
+  font-family: "Share Tech Mono", ui-monospace, monospace;
+}
+.kpi .box .t{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---- Charts ---- */
 .chart-wrap{
   margin-top: 12px;
   padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid rgba(170,200,255,.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
 }
 
-/* One combined chart container */
+.chart-wrap h3{ margin: 0 0 8px; }
+
 .chart-canvas{
   width: 100% !important;
   height: var(--chart-h) !important;
   display:block;
 }
 
-/* Chart.js will set inline styles sometimes; force the internal canvas to obey height */
 .chart-wrap canvas{
   width: 100% !important;
   height: 100% !important;
 }
 
-/* ---- Charts: hard clamp height ---- */
+/* Keep Results charts compact if you want */
 #resultsCard .chart-wrap{
-  height: 190px;           /* container height (includes title) */
+  height: 210px;
   overflow: hidden;
 }
-
-#resultsCard .chart-wrap h3{
-  margin: 0 0 8px;
+#resultsCard .chart-canvas{
+  height: 160px !important;
+  max-height: 160px !important;
 }
 
-#resultsCard .chart-canvas{
-  height: 150px !important;   /* actual chart area */
-  max-height: 150px !important;
-  width: 100% !important;
-  display: block;
+/* ---- Responsive ---- */
+@media (max-width: 900px){
+  .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .row > *{ min-width: 200px; }
+  .totals{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px){
+  .bar{ flex-direction:column; align-items:flex-start; }
+  .btns button{ width:100%; }
+  #backBtn, #nextBtn{ width:100%; }
 }
